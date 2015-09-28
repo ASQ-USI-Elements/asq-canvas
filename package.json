@@ -1,0 +1,25 @@
+{
+  "name": "asq-canvas",
+  "version": "0.1.0",
+  "description": "ASQ canvas element to shares what the presenter is drawing on the screen with the viewers",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ASQ-USI-Elements/asq-canvas"
+  },
+  "dependencies": {
+    "asq-plugin": "ASQ-USI/asq-plugin#master",
+    "bluebird": "^2.9.7",
+    "lodash": "^3.2.0"
+  },
+  "bugs": {
+    "url": "https://github.com/ASQ-USI-Elements/asq-canvas/issues"
+  },
+  "devDependencies": {
+    "chai": "^2.0.0",
+    "sinon": "^1.12.2"
+  },
+  "asq": {
+    "type": "question"
+  }
+}

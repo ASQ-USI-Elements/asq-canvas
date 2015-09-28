@@ -1,0 +1,177 @@
+<link rel="import" href="../../polymer/polymer.html">
+<link rel="import" href="../../iron-flex-layout/iron-flex-layout.html">
+<link rel="import" href="../../asq-base/asq-base.html">
+
+<!--
+`asq-canvas-viewer` provides the presenter view of `asq-text-input-q-stats`. 
+
+Example:
+
+    <asq-canvas-viewer for="leId">
+    </asq-canvas-viewer>
+
+
+@element asq-canvas-viewer
+@demo demo/stats.html
+@group ASQ Elements
+@blurb Element provides a stats for `asq-text-input-q` elements.
+@homepage http://github.com/ASQ-USI-Elements/asq-text-input-q
+-->
+<dom-module id="asq-canvas-viewer">
+
+  <template>
+
+    <style>
+      :host {
+        @apply(--layout-vertical);
+        @apply(--layout-flex);
+      }
+
+      #canvas{
+        width: 100%;
+        @apply(--layout-flex);
+        cursor: crosshair;
+      }
+
+      #canvas:active { 
+        cursor: crosshair;
+      }
+
+    </style>
+
+  
+  <canvas id="canvas"></canvas>
+
+  </template>
+</dom-module>
+<script>
+  (function() {
+  
+    Polymer({
+
+      is: 'asq-canvas-viewer',
+      behaviors: [ASQ.asqElementBehavior],
+
+      properties: {
+
+        /**
+         * Event bus to communicate with ASQ.
+         */
+        eventBus: {
+          type: Object,
+          observer: "_eventBusChanged",
+          notify: true
+        },
+
+        /**
+         * whether the canvas will accept pointer events or not.
+         */
+        isInteractive: {
+          type: Boolean,
+          value: false,
+          observer: "_isInteractiveChanged",
+          notify: true
+        }
+      },
+
+      attached: function(){
+
+        this.ctx = this.$.canvas.getContext('2d');
+        this.lastX = 0;
+        this.lastY = 0;
+        this.color = 0;
+        this.activeCanvas = false;
+
+        window.addEventListener('resize', this.resizeCanvas.bind(this), false);
+        this.resizeCanvas();
+      },
+
+      resizeCanvas: function () {
+        this.$.canvas.width = this.offsetWidth;
+        this.$.canvas.height = this.offsetHeight;
+      },
+
+      _isInteractiveChanged: function(newVal, oldVal){
+        this.style.pointerEvents = newVal ? "auto" : "none";
+      },
+
+      // define a custom fillCircle method
+      fillCircle : function(x1, y1, x2, y2, lineThickness) {
+        //this.fillStyle = fillColor;
+
+        var steep = (Math.abs(y2 - y1) > Math.abs(x2 - x1));
+        if (steep) {
+          var x = x1;
+          x1 = y1;
+          y1 = x;
+
+          var y = y2;
+          y2 = x2;
+          x2 = y;
+        }
+        if (x1 > x2) {
+          var x = x1;
+          x1 = x2;
+          x2 = x;
+
+          var y = y1;
+          y1 = y2;
+          y2 = y;
+        }
+
+        var dx = x2 - x1, dy = Math.abs(y2 - y1), error = 0, de = dy / dx, yStep = -1, y = y1;
+
+        if (y1 < y2) {
+          yStep = 1;
+        }
+
+        for (var x = x1; x < x2; x++) {
+          if (steep) {
+            this.ctx.fillRect(y, x, lineThickness, lineThickness);
+          } else {
+            this.ctx.fillRect(x, y, lineThickness, lineThickness);
+          }
+
+          error += de;
+          if (error >= 0.5) {
+            y += yStep;
+            error -= 1.0;
+          }
+        }
+      },
+
+      clearTo : function() {
+        this.ctx.clearRect(0, 0, this.$.canvas.width, this.$.canvas.height);
+      },
+
+      _onAsqPlugin: function(evt){
+        if(evt.type !== "asq-canvas") return;
+
+        var d = evt.data;
+
+        switch (d.command){
+          case "fillCircle":
+            this.ctx.fillStyle = d.fillStyle;
+            this.fillCircle(d.mouseX, d.mouseY, d.lastX, d.lastY, d.lineThickness); 
+            break;
+          case "clearTo":
+            this.clearTo();;
+            break;
+          case "makeInteractive":
+            this.isInteractive = true;
+            break;
+          case "makeNonInteractive":
+            this.isInteractive = false;
+            break;
+        }
+      },
+
+      _eventBusChanged: function (eventBus, old) {
+        if(!eventBus) return;
+        eventBus.on('asq-plugin', this._onAsqPlugin.bind(this));
+      },
+
+    
+    });
+  })();
+</script>

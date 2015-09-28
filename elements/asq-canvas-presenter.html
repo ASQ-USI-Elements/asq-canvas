@@ -1,0 +1,281 @@
+<link rel="import" href="../../polymer/polymer.html">
+<link rel="import" href="../../iron-flex-layout/iron-flex-layout.html">
+<link rel="import" href="../../asq-base/asq-base.html">
+
+<!--
+`asq-canvas-presenter` provides the presenter view of `asq-text-input-q-stats`. 
+
+Example:
+
+    <asq-canvas-presenter for="leId">
+    </asq-canvas-presenter>
+
+
+@element asq-canvas-presenter
+@demo demo/stats.html
+@group ASQ Elements
+@blurb Element provides a stats for `asq-text-input-q` elements.
+@homepage http://github.com/ASQ-USI-Elements/asq-text-input-q
+-->
+<dom-module id="asq-canvas-presenter">
+
+  <template>
+
+    <style>
+      :host {
+        @apply(--layout-vertical);
+        @apply(--layout-flex);
+      }
+
+      #canvas{
+        width: 100%;
+        @apply(--layout-flex);
+        cursor: crosshair;
+      }
+
+      #canvas:active { 
+        cursor: crosshair;
+      }
+
+    </style>
+
+  
+  <canvas id="canvas" on-mousemove="_onMousemove" on-mousedown="_onMousedown" on-mouseup="_onMouseup" on-mousewheel="_onMousewheel"></canvas>
+
+  </template>
+</dom-module>
+<script>
+  (function() {
+
+    function rainbow(numOfSteps, step) {
+        // This function generates vibrant, "evenly spaced" colours (i.e. no clustering). This is ideal for creating easily distinguishable vibrant markers in Google Maps and other apps.
+        // Adam Cole, 2011-Sept-14
+        // HSV to RBG adapted from: http://mjijackson.com/2008/02/rgb-to-hsl-and-rgb-to-hsv-color-model-conversion-algorithms-in-javascript
+        var r, g, b;
+        var h = step / numOfSteps;
+        var i = ~~(h * 6);
+        var f = h * 6 - i;
+        var q = 1 - f;
+        switch(i % 6){
+            case 0: r = 1, g = f, b = 0; break;
+            case 1: r = q, g = 1, b = 0; break;
+            case 2: r = 0, g = 1, b = f; break;
+            case 3: r = 0, g = q, b = 1; break;
+            case 4: r = f, g = 0, b = 1; break;
+            case 5: r = 1, g = 0, b = q; break;
+        }
+        var c = "#" + ("00" + (~ ~(r * 255)).toString(16)).slice(-2) + ("00" + (~ ~(g * 255)).toString(16)).slice(-2) + ("00" + (~ ~(b * 255)).toString(16)).slice(-2);
+        return (c);
+    }
+  
+    Polymer({
+
+      is: 'asq-canvas-presenter',
+      behaviors: [ASQ.asqElementBehavior],
+
+      properties: {
+
+        /**
+         * Event bus to communicate with ASQ.
+         */
+        eventBus: {
+          type: Object,
+          notify: true
+        },
+
+        /**
+         * whether the canvas will accept pointer events or not.
+         */
+        isInteractive: {
+          type: Boolean,
+          value: false,
+          observer: "_isInteractiveChanged",
+          notify: true
+        }
+      },
+
+
+      attached: function(){
+        this.ctx = this.$.canvas.getContext('2d');
+        this.lastX = 0;
+        this.lastY = 0;
+        this.color = 0;
+        this.activeCanvas = false;
+
+        window.addEventListener('resize', this.resizeCanvas.bind(this), false);
+        this.resizeCanvas();
+        
+
+          document.addEventListener("keyup", function(event) {
+            if (event.keyCode === 67) {
+              if (this.activeCanvas) {
+                this.clearTo();
+                this.emitClearToEvent();
+                this.isInteractive = false;
+                this.emitMakeNonInteractiveEvent();
+                this.activeCanvas = !this.activeCanvas;
+              } else {
+                this.isInteractive = true;
+                this.emitMakeInteractiveEvent();
+                this.activeCanvas = !this.activeCanvas;
+              }
+            }
+
+          }.bind(this), false);
+
+      },
+
+      resizeCanvas: function () {
+        this.$.canvas.width = this.offsetWidth;
+        this.$.canvas.height = this.offsetHeight;
+      },
+
+      _isInteractiveChanged: function(newVal, oldVal){
+        this.style.pointerEvents = newVal ? "auto" : "none";
+      },
+
+      // define a custom fillCircle method
+      fillCircle : function(x1, y1, x2, y2, lineThickness) {
+        //this.fillStyle = fillColor;
+
+        var steep = (Math.abs(y2 - y1) > Math.abs(x2 - x1));
+        if (steep) {
+          var x = x1;
+          x1 = y1;
+          y1 = x;
+
+          var y = y2;
+          y2 = x2;
+          x2 = y;
+        }
+        if (x1 > x2) {
+          var x = x1;
+          x1 = x2;
+          x2 = x;
+
+          var y = y1;
+          y1 = y2;
+          y2 = y;
+        }
+
+        var dx = x2 - x1, dy = Math.abs(y2 - y1), error = 0, de = dy / dx, yStep = -1, y = y1;
+
+        if (y1 < y2) {
+          yStep = 1;
+        }
+
+        for (var x = x1; x < x2; x++) {
+          if (steep) {
+            this.ctx.fillRect(y, x, lineThickness, lineThickness);
+          } else {
+            this.ctx.fillRect(x, y, lineThickness, lineThickness);
+          }
+
+          error += de;
+          if (error >= 0.5) {
+            y += yStep;
+            error -= 1.0;
+          }
+        }
+      },
+
+      clearTo : function() {
+        this.ctx.clearRect(0, 0, this.$.canvas.width, this.$.canvas.height);
+      },
+
+      // bind mouse events
+      _onMousemove: function(e) {
+        if (!this.isDrawing) {
+          return;
+        }
+        mouseX = e.pageX - this.offsetLeft;
+        mouseY = e.pageY - this.offsetTop;
+
+        this.fillCircle(mouseX, mouseY, this.lastX, this.lastY, 6);
+        this.emitFillEvent(this.ctx.fillStyle, mouseX, mouseY, this.lastX, this.lastY, 6 )
+
+        this.lastX = mouseX;
+        this.lastY = mouseY;
+
+      },
+
+      _onMousedown: function(e) {
+        this.isDrawing = true;
+        this.lastX = e.pageX - this.offsetLeft;
+        this.lastY = e.pageY - this.offsetTop;
+
+        this.ctx.fillStyle = rainbow(50,this.color++);
+        if (this.color>50) { this.color = 0; }
+      },
+
+      _onMouseup :function(e) {
+        this.isDrawing = false;
+      },
+
+      _onMousewheel: function(e) {
+        var delta = e.detail ? e.detail * (-120) : e.wheelDelta;
+        this.ctx.fillStyle = "rgb(" + delta + ",0,0)";
+      },
+
+      _onQuestionType: function(evt){
+        if(!evt || ! evt.questionType) return;
+
+        if(evt.questionType == 'asq-text-input-q'){
+          if(evt.type == "progress"){
+            this._onProgress(evt);
+          }
+          else if(evt.type == "restorePresenter"){
+            this._onRestorePresenter(evt);
+          }
+        }
+      },
+
+      emitClearToEvent: function(){
+        if (!this.eventBus) return;
+        this.eventBus.emit('asq-plugin', {
+          type: 'asq-canvas',
+          data: {
+            command: "clearTo"
+          }
+        });
+      },
+
+      emitMakeNonInteractiveEvent: function(){
+        if (!this.eventBus) return;
+        this.eventBus.emit('asq-plugin', {
+          type: 'asq-canvas',
+          data: {
+            command: "makeNonInteractive"
+          }
+        });
+      },
+
+      emitMakeInteractiveEvent: function(){
+        if (!this.eventBus) return;
+        this.eventBus.emit('asq-plugin', {
+          type: 'asq-canvas',
+          data: {
+            command: "makeInteractive"
+          }
+        });
+      },
+
+      emitFillEvent: function(fillStyle, mouseX, mouseY, lastX, lastY, lineThickness){
+        if (!this.eventBus) return;
+        this.eventBus.emit('asq-plugin', {
+          type: 'asq-canvas',
+          data: {
+            command: "fillCircle",
+            fillStyle: fillStyle,
+            mouseX: mouseX,
+            mouseY: mouseY,
+            lastX: lastX,
+            lastY: lastY,
+            lineThickness : lineThickness
+          }
+        })
+      }
+    
+    });
+  })();
+</script>

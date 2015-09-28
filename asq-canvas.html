@@ -1,0 +1,97 @@
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../asq-base/asq-base.html">
+<link rel="import" href="../iron-flex-layout/iron-flex-layout.html">
+<link rel="import" href="elements/asq-canvas-presenter.html">
+<link rel="import" href="elements/asq-canvas-viewer.html">
+
+
+<!--
+`asq-canvas` is a styled single-line input field. It can be used for simple
+text questions. 
+
+##### Example
+    <asq-canvas label="value">
+      <asq-stem><h5>What's value of a[3]?</h5></asq-stem>
+      <pre><code>
+        char a[27];
+        char *b = "abc";
+        strcpy(a, b);</code></pre>
+      <asq-solution hidden>\0</asq-solution>
+    </asq-canvas>
+
+
+@element asq-canvas
+@demo demo/index.html
+@group ASQ Elements
+@blurb Element a styled single-line input field. It wraps the `paper-input` element.
+@homepage http://github.com/ASQ-USI-Elements/asq-canvas
+-->
+<dom-module id="asq-canvas">
+
+  <template>
+
+    <style>
+      :host {
+        @apply(--layout-vertical);
+      }
+     
+    </style>
+    
+    <!-- Viewer -->
+    <template is="dom-if" if="{{hasRole(role, roles.VIEWER)}}" restamp>
+      <asq-canvas-viewer is-interactive="{{isInteractive}}" event-bus="[[eventBus]]"></asq-canvas-viewer>
+    </template>
+
+    <!-- Presenter -->
+    <template is="dom-if" if="{{hasRole(role, roles.PRESENTER)}}" restamp>
+      <asq-canvas-presenter is-interactive="{{isInteractive}}" event-bus="[[eventBus]]"></asq-canvas-presenter>
+    </template>
+
+  </template>
+</dom-module>
+<script>
+  (function() {
+  
+    Polymer({
+
+      is: 'asq-canvas',
+      behaviors: [ASQ.asqElementBehavior],
+
+      properties: {
+
+        /**
+         * Event bus to communicate with ASQ.
+         */
+        eventBus: {
+          type: Object,
+          notify: true
+        },
+
+        /**
+         * whether the canvas will accept pointer events or not.
+         */
+        isInteractive: {
+          type: Boolean,
+          value: false,
+          observer: "_isInteractiveChanged",
+          notify: true
+        }
+      },
+
+      created: function(){
+        document.addEventListener('asq-ready', function(evt){
+          this.eventBus = evt.detail.asqEventBus;
+        }.bind(this));
+      },
+
+      _isInteractiveChanged: function(newVal, oldVal){
+        this.style.pointerEvents = newVal ? "auto" : "none";
+      },
+
+      hasRole: function (role, candidate) {
+        return role == candidate;
+      }
+    
+    });
+  })();
+</script>
