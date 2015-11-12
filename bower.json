@@ -12,9 +12,9 @@
   ],
   "license": "MIT",
   "dependencies": {
-    "asq-base": "ASQ-USI-Elements/asq-base#feat-polymer-1",
-    "iron-flex-layout": "PolymerElements/iron-flex-layout#~1.0.3",
-    "polymer": "Polymer/Polymer#~1.1.0"
+    "asq-base": "ASQ-USI-Elements/asq-base#master",
+    "iron-flex-layout": "PolymerElements/iron-flex-layout#~1.0.5",
+    "polymer": "Polymer/Polymer#~1.2.1"
   },
   "ignore": [
     "index.js",
