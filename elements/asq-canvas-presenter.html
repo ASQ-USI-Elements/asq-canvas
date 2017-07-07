@@ -179,7 +179,13 @@ Example:
           }
 
           if (saveCommand) {
-            // save
+            // download the canvas
+            let link = document.createElement('a');
+            Polymer.dom(this.root).appendChild(link);
+            link.href = this.$.canvas.toDataURL();
+            link.download = 'canvas';
+            link.click();
+            Polymer.dom(this.root).removeChild(link);
           }
 
         }.bind(this), false);
