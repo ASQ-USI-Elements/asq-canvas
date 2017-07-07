@@ -3,7 +3,7 @@
 <link rel="import" href="../../asq-base/asq-base.html">
 
 <!--
-`asq-canvas-presenter` provides the presenter view of `asq-text-input-q-stats`. 
+`asq-canvas-presenter` provides the presenter view of `asq-canvas`.
 
 Example:
 
@@ -14,8 +14,8 @@ Example:
 @element asq-canvas-presenter
 @demo demo/stats.html
 @group ASQ Elements
-@blurb Element provides a stats for `asq-text-input-q` elements.
-@homepage http://github.com/ASQ-USI-Elements/asq-text-input-q
+@blurb Element provides a canvas for `asq-canvas` elements.
+@homepage http://github.com/ASQ-USI-Elements/asq-canvas
 -->
 <dom-module id="asq-canvas-presenter">
 
@@ -33,13 +33,13 @@ Example:
         cursor: crosshair;
       }
 
-      #canvas:active { 
+      #canvas:active {
         cursor: crosshair;
       }
 
     </style>
 
-  
+
   <canvas id="canvas" on-mousemove="_onMousemove" on-mousedown="_onMousedown" on-mouseup="_onMouseup" on-mousewheel="_onMousewheel"></canvas>
 
   </template>
@@ -67,7 +67,7 @@ Example:
         var c = "#" + ("00" + (~ ~(r * 255)).toString(16)).slice(-2) + ("00" + (~ ~(g * 255)).toString(16)).slice(-2) + ("00" + (~ ~(b * 255)).toString(16)).slice(-2);
         return (c);
     }
-  
+
     Polymer({
 
       is: 'asq-canvas-presenter',
@@ -101,27 +101,88 @@ Example:
         this.lastY = 0;
         this.color = 0;
         this.activeCanvas = false;
+        this.keys = {
+                      17: false, // control
+                      68: false, // d
+                      83: false, // s
+                    };
 
         window.addEventListener('resize', this.resizeCanvas.bind(this), false);
         this.resizeCanvas();
-        
 
-          document.addEventListener("keyup", function(event) {
-            if (event.keyCode === 67) {
-              if (this.activeCanvas) {
-                this.clearTo();
-                this.emitClearToEvent();
-                this.isInteractive = false;
-                this.emitMakeNonInteractiveEvent();
-                this.activeCanvas = !this.activeCanvas;
-              } else {
-                this.isInteractive = true;
-                this.emitMakeInteractiveEvent();
-                this.activeCanvas = !this.activeCanvas;
+        document.addEventListener("keydown", function(event) {
+          switch (event.keyCode) {
+            case 17:
+              this.keys[17] = true;
+              break;
+
+            case 68:
+              this.keys[68] = true;
+              break;
+
+            case 83:
+              this.keys[83] = true;
+              break;
+
+            default:
+              break;
+          }
+
+        }.bind(this));
+
+        document.addEventListener("keyup", function(event) {
+          let drawCommand, saveCommand; // control + d or s respectively
+
+          switch (event.keyCode) {
+            case 17:
+              if (this.keys[68]) {
+                drawCommand = true;
+                this.keys[68] = false;
               }
-            }
+              if (this.keys[83]) {
+                saveCommand = true;
+                this.keys[83] = false;
+              }
+              this.keys[17] = false;
+              break;
 
-          }.bind(this), false);
+            case 68:
+              if (this.keys[17]) {
+                drawCommand = true;
+                this.keys[17] = false;
+              }
+              this.keys[68] = false;
+
+            case 83:
+              if (this.keys[17]) {
+                saveCommand = true;
+                this.keys[17] = false;
+              }
+              this.keys[83] = false;
+
+            default:
+              break;
+          }
+
+          if (drawCommand) {
+            if (this.activeCanvas) {
+              this.clearTo();
+              this.emitClearToEvent();
+              this.isInteractive = false;
+              this.emitMakeNonInteractiveEvent();
+              this.activeCanvas = !this.activeCanvas;
+            } else {
+              this.isInteractive = true;
+              this.emitMakeInteractiveEvent();
+              this.activeCanvas = !this.activeCanvas;
+            }
+          }
+
+          if (saveCommand) {
+            // save
+          }
+
+        }.bind(this), false);
 
       },
 
@@ -275,7 +336,7 @@ Example:
           }
         })
       }
-    
+
     });
   })();
 </script>
