@@ -91,6 +91,22 @@ Example:
           value: false,
           observer: "_isInteractiveChanged",
           notify: true
+        },
+
+        /**
+         * Object that saves the drawing for its corresponding slide.
+         */
+        drawings: {
+          type: Object,
+          value: {},
+        },
+
+        /**
+         * name of the last shown slide
+         */
+        lastStep: {
+          type: String,
+          value: "",
         }
       },
 
@@ -341,7 +357,47 @@ Example:
             lineThickness : lineThickness
           }
         })
-      }
+      },
+
+      // Show the drawing only on its corresponding slide
+      created: function(){
+        document.addEventListener('asq-ready', function(evt){
+          try {
+          this._subscribeToEvents(this.eventBus);
+          }
+          catch (err) {
+            console.debug('failed to _subscribeToEvents');
+          }
+        }.bind(this));
+      },
+
+      _subscribeToEvents: function(eventBus) {
+        eventBus.on('asq:goto', this._onGoto.bind(this));
+      },
+
+      _onGoto: function(evt) {
+        // we are at the beginning or resume the presentation
+        if (!this.lastStep) this.lastStep = evt.data.step;
+
+        // save current drawing
+        this.drawings[this.lastStep] = this.$.canvas.toDataURL();
+
+        // erase the current drawing
+        this.clearTo();
+        this.emitClearToEvent();
+
+        // draw the drawing of the new slide if there is one
+        let img = new Image();
+        img.src = this.drawings[evt.data.step];
+        let context = this.ctx;
+        img.addEventListener("load", function(evt) {
+          setTimeout(function() {
+            context.drawImage(img, 0, 0);
+          }, 1000);
+        });
+
+        this.lastStep = evt.data.step;
+      },
 
     });
   })();

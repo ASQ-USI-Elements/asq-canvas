@@ -7,7 +7,7 @@
 
 <!--
 `asq-canvas` is a styled single-line input field. It can be used for simple
-text questions. 
+text questions.
 
 ##### Example
     <asq-canvas label="value">
@@ -34,9 +34,9 @@ text questions.
       :host {
         @apply(--layout-vertical);
       }
-     
+
     </style>
-    
+
     <!-- Viewer -->
     <template is="dom-if" if="{{hasRole(role, roles.VIEWER)}}" restamp>
       <asq-canvas-viewer is-interactive="{{isInteractive}}" event-bus="[[eventBus]]"></asq-canvas-viewer>
@@ -51,7 +51,7 @@ text questions.
 </dom-module>
 <script>
   (function() {
-  
+
     Polymer({
 
       is: 'asq-canvas',
@@ -91,7 +91,7 @@ text questions.
       hasRole: function (role, candidate) {
         return role == candidate;
       }
-    
+
     });
   })();
 </script>
