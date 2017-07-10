@@ -266,6 +266,17 @@ Example:
         this.ctx.clearRect(0, 0, this.$.canvas.width, this.$.canvas.height);
       },
 
+      loadImage: function(step) {
+        let img = new Image();
+        img.src = this.drawings[step];
+        let context = this.ctx;
+        img.addEventListener("load", function(evt) {
+          setTimeout(function() {
+            context.drawImage(img, 0, 0);
+          }, 1000);
+        });
+      },
+
       // bind mouse events
       _onMousemove: function(e) {
         if (!this.isDrawing) {
@@ -356,7 +367,18 @@ Example:
             lastY: lastY,
             lineThickness : lineThickness
           }
-        })
+        });
+      },
+
+      emitLoadImageEvent: function(data) {
+        if (!this.eventBus) return;
+        this.eventBus.emit('asq-plugin', {
+          type: 'asq-canvas',
+          data: {
+            command: "loadImage",
+            dataURL: data
+          }
+        });
       },
 
       // Show the drawing only on its corresponding slide
@@ -387,14 +409,8 @@ Example:
         this.emitClearToEvent();
 
         // draw the drawing of the new slide if there is one
-        let img = new Image();
-        img.src = this.drawings[evt.data.step];
-        let context = this.ctx;
-        img.addEventListener("load", function(evt) {
-          setTimeout(function() {
-            context.drawImage(img, 0, 0);
-          }, 1000);
-        });
+        this.loadImage(evt.data.step);
+        this.emitLoadImageEvent(this.drawings[evt.data.step]);
 
         this.lastStep = evt.data.step;
       },

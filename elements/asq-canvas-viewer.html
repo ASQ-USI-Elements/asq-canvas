@@ -3,7 +3,7 @@
 <link rel="import" href="../../asq-base/asq-base.html">
 
 <!--
-`asq-canvas-viewer` provides the presenter view of `asq-text-input-q-stats`. 
+`asq-canvas-viewer` provides the presenter view of `asq-text-input-q-stats`.
 
 Example:
 
@@ -33,20 +33,20 @@ Example:
         cursor: crosshair;
       }
 
-      #canvas:active { 
+      #canvas:active {
         cursor: crosshair;
       }
 
     </style>
 
-  
+
   <canvas id="canvas"></canvas>
 
   </template>
 </dom-module>
 <script>
   (function() {
-  
+
     Polymer({
 
       is: 'asq-canvas-viewer',
@@ -144,6 +144,17 @@ Example:
         this.ctx.clearRect(0, 0, this.$.canvas.width, this.$.canvas.height);
       },
 
+      loadImage: function(data) {
+        let img = new Image();
+        img.src = data;
+        let context = this.ctx;
+        img.addEventListener("load", function(evt) {
+          setTimeout(function() {
+            context.drawImage(img, 0, 0);
+          }, 1000);
+        });
+      },
+
       _onAsqPlugin: function(evt){
         if(evt.type !== "asq-canvas") return;
 
@@ -152,7 +163,7 @@ Example:
         switch (d.command){
           case "fillCircle":
             this.ctx.fillStyle = d.fillStyle;
-            this.fillCircle(d.mouseX, d.mouseY, d.lastX, d.lastY, d.lineThickness); 
+            this.fillCircle(d.mouseX, d.mouseY, d.lastX, d.lastY, d.lineThickness);
             break;
           case "clearTo":
             this.clearTo();;
@@ -163,6 +174,10 @@ Example:
           case "makeNonInteractive":
             this.isInteractive = false;
             break;
+
+          case "loadImage":
+            this.loadImage(d.dataURL);
+            break;
         }
       },
 
@@ -171,7 +186,7 @@ Example:
         eventBus.on('asq-plugin', this._onAsqPlugin.bind(this));
       },
 
-    
+
     });
   })();
 </script>
