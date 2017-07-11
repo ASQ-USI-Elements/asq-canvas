@@ -268,13 +268,15 @@ Example:
 
       loadImage: function(step) {
         let img = new Image();
-        img.src = this.drawings[step];
-        let context = this.ctx;
-        img.addEventListener("load", function(evt) {
-          setTimeout(function() {
-            context.drawImage(img, 0, 0);
-          }, 1000);
-        });
+        if (this.drawings[step]) {
+          img.src = this.drawings[step];
+          let context = this.ctx;
+          img.addEventListener("load", function(evt) {
+            setTimeout(function() {
+              context.drawImage(img, 0, 0);
+            }, 1000);
+          });
+        }
       },
 
       // bind mouse events
@@ -395,6 +397,8 @@ Example:
 
       _subscribeToEvents: function(eventBus) {
         eventBus.on('asq:goto', this._onGoto.bind(this));
+        eventBus.on('asq:folo-connected', this._onConnected.bind(this));
+        eventBus.on('asq:ghost-connected', this._onConnected.bind(this));
       },
 
       _onGoto: function(evt) {
@@ -411,8 +415,14 @@ Example:
         // draw the drawing of the new slide if there is one
         this.loadImage(evt.data.step);
         this.emitLoadImageEvent(this.drawings[evt.data.step]);
-
+        //
         this.lastStep = evt.data.step;
+      },
+
+      // draw the current drawing if the viewer connects later
+      _onConnected: function(evt) {
+        this.drawings[this.lastStep] = this.$.canvas.toDataURL();
+        this.emitLoadImageEvent(this.drawings[this.lastStep]);
       },
 
     });
