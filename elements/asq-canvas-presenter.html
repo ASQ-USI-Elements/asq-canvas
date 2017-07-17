@@ -311,6 +311,7 @@ Example:
       _onMouseup :function(e) {
         this.isDrawing = false;
         this.saveDrawingLocally();
+        this.emitSaveDrawingsEvent(this.drawings);
       },
 
       _onMousewheel: function(e) {
@@ -329,6 +330,36 @@ Example:
             this._onRestorePresenter(evt);
           }
         }
+      },
+
+      _onAsqPluginInfo: function(evt) {
+        if (evt.data.command == 'storeDrawingsLocally') {
+            this.drawings = evt.data.pluginInfo.drawings || {};
+        }
+      },
+
+      _onGoto: function(evt) {
+        // we are at the beginning or resume the presentation
+        if (!this.lastStep) {
+          this.lastStep = evt.data.step;
+          this.emitGetDrawingsEvent();
+        }
+
+        // erase the current drawing
+        this.clearTo();
+        this.emitClearToEvent();
+
+        // draw the drawing of the new slide if there is one
+        this.loadImage(evt.data.step);
+        this.emitLoadImageEvent(this.drawings[evt.data.step]);
+        //
+        this.lastStep = evt.data.step;
+      },
+
+      // draw the current drawing if the viewer connects later
+      _onConnected: function(evt) {
+        this.drawings[this.lastStep] = this.$.canvas.toDataURL();
+        this.emitLoadImageEvent(this.drawings[this.lastStep]);
       },
 
       emitClearToEvent: function(){
@@ -388,6 +419,28 @@ Example:
         });
       },
 
+      emitSaveDrawingsEvent: function(drawings) {
+        if (!this.eventBus) return;
+        this.eventBus.emit('asq-plugin', {
+          type: 'asq-canvas',
+          data: {
+            command: 'saveDrawings',
+            drawings: drawings
+          }
+        });
+      },
+
+      emitGetDrawingsEvent: function() {
+        if (!this.eventBus) return;
+        this.eventBus.emit('asq-plugin', {
+          type: 'asq-canvas',
+          data: {
+            command: 'getDrawings',
+          }
+        });
+      },
+
+
       // Show the drawing only on its corresponding slide
       created: function(){
         document.addEventListener('asq-ready', function(evt){
@@ -404,27 +457,7 @@ Example:
         eventBus.on('asq:goto', this._onGoto.bind(this));
         eventBus.on('asq:folo-connected', this._onConnected.bind(this));
         eventBus.on('asq:ghost-connected', this._onConnected.bind(this));
-      },
-
-      _onGoto: function(evt) {
-        // we are at the beginning or resume the presentation
-        if (!this.lastStep) this.lastStep = evt.data.step;
-
-        // erase the current drawing
-        this.clearTo();
-        this.emitClearToEvent();
-
-        // draw the drawing of the new slide if there is one
-        this.loadImage(evt.data.step);
-        this.emitLoadImageEvent(this.drawings[evt.data.step]);
-        //
-        this.lastStep = evt.data.step;
-      },
-
-      // draw the current drawing if the viewer connects later
-      _onConnected: function(evt) {
-        this.drawings[this.lastStep] = this.$.canvas.toDataURL();
-        this.emitLoadImageEvent(this.drawings[this.lastStep]);
+        eventBus.on('asq-plugin', this._onAsqPluginInfo.bind(this));
       },
 
     });
