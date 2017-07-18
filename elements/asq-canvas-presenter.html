@@ -25,6 +25,7 @@ Example:
       :host {
         @apply(--layout-vertical);
         @apply(--layout-flex);
+        --paper-swatch-picker-color-size: 10px;
       }
 
       #canvas{
@@ -95,6 +96,9 @@ Example:
 
       #colorBtn {
         bottom: 47px;
+        right: 7px;
+        width: 40px;
+        height: 40px;
       }
 
       #sizeBtn {
@@ -120,7 +124,7 @@ Example:
 
     <paper-icon-button id="toggleDrawing" title="open drawing tools" icon="image:brush"></paper-icon-button>
     <paper-icon-button id="penBtn" class="drawingMenu" title="start drawing" icon="create"></paper-icon-button>
-    <paper-icon-button id="colorBtn" class="drawingMenu" title="change color" icon="image:palette"></paper-icon-button>
+    <paper-swatch-picker id="colorBtn" class="drawingMenu" title="change color" color="{{selectedColor}}"></paper-swatch-picker>
     <paper-icon-button id="sizeBtn" class="drawingMenu" title="change pencil size" icon="image:lens"></paper-icon-button>
     <paper-icon-button id="eraseBtn" class="drawingMenu" title="use the eraser" icon="communication:no-sim"></paper-icon-button>
   </div>
@@ -536,6 +540,8 @@ Example:
 
       ready: function() {
         this.$.toggleDrawing.addEventListener('click', this._toggleMenu.bind(this));
+        var paletteIcon = this.$.colorBtn.shadowRoot.querySelector('#iconButton');
+        paletteIcon.icon = "image:palette";
       },
 
       _subscribeToEvents: function(eventBus) {
