@@ -333,7 +333,7 @@ Example:
       },
 
       _onAsqPluginInfo: function(evt) {
-        if (evt.data.command == 'storeDrawingsLocally') {
+        if (evt.data.command == 'storeDrawingsLocally' && evt.data.pluginInfo) {
             this.drawings = evt.data.pluginInfo.drawings || {};
         }
       },
