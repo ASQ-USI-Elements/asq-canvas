@@ -117,7 +117,7 @@ Example:
 
   <div id="drawingTools">
     <div id="slideUtils">
-      <paper-icon-button class="drawingMenu" title="add a new slide" icon="add"></paper-icon-button>
+      <paper-icon-button id="addSlide" class="drawingMenu" title="add a new slide" icon="add"></paper-icon-button>
       <paper-icon-button class="drawingMenu" title="remove a slide" icon="remove"></paper-icon-button>
       <paper-icon-button class="drawingMenu" title="download the current drawing" icon="file-download"></paper-icon-button>
     </div>
@@ -540,6 +540,7 @@ Example:
 
       ready: function() {
         this.$.toggleDrawing.addEventListener('click', this._toggleMenu.bind(this));
+        this.$.addSlide.addEventListener('click', this._addSlide.bind(this));
         var paletteIcon = this.$.colorBtn.shadowRoot.querySelector('#iconButton');
         paletteIcon.icon = "image:palette";
       },
@@ -575,6 +576,18 @@ Example:
             button.className = "drawingMenu"
           });
         }
+      },
+
+      _addSlide: function() {
+        if (!this.eventBus) return;
+        this.eventBus.emit('asq-plugin', {
+          type: 'asq-canvas',
+          data: {
+            command: 'addSlide',
+            content: '',
+            atEnd: false
+          }
+        })
       },
 
     });
