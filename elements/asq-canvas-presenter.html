@@ -417,9 +417,9 @@ Example:
         }
       },
 
-      _onAsqPluginInfo: function(evt) {
-        if (evt.data.command == 'storeDrawingsLocally' && evt.data.pluginInfo) {
-            this.drawings = evt.data.pluginInfo.drawings || {};
+      _onAsqPluginCustomData: function(evt) {
+        if (evt.data.command == 'storeDrawingsLocally' && evt.data.pluginCustomData) {
+            this.drawings = evt.data.pluginCustomData.drawings || {};
         }
       },
 
@@ -548,7 +548,7 @@ Example:
         eventBus.on('asq:goto', this._onGoto.bind(this));
         eventBus.on('asq:folo-connected', this._onConnected.bind(this));
         eventBus.on('asq:ghost-connected', this._onConnected.bind(this));
-        eventBus.on('asq-plugin', this._onAsqPluginInfo.bind(this));
+        eventBus.on('asq-plugin', this._onAsqPluginCustomData.bind(this));
       },
 
       _toggleMenu: function(evt) {
