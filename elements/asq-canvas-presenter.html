@@ -445,10 +445,11 @@ Example:
         this.lastStep = id;
       },
 
-      // draw the current drawing if the viewer connects later
+      // draw the current drawing and retrieve the extra slides if the viewer connects later
       _onConnected: function(evt) {
         this.drawings[this.lastStep] = this.$.canvas.toDataURL();
         this.emitLoadImageEvent(this.drawings[this.lastStep]);
+        this.emitGetSlidesEvent();
       },
 
       emitClearToEvent: function(){
