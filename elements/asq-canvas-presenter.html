@@ -291,6 +291,9 @@ Example:
 
         }.bind(this), false);
 
+        // add the additional drawing slides
+        this.emitGetSlidesEvent();
+
       },
 
       resizeCanvas: function () {
@@ -438,7 +441,7 @@ Example:
         // draw the drawing of the new slide if there is one
         this.loadImage(id);
         this.emitLoadImageEvent(this.drawings[id]);
-        //
+
         this.lastStep = id;
       },
 
@@ -526,8 +529,16 @@ Example:
         });
       },
 
+      emitGetSlidesEvent: function() {
+        if (!this.eventBus) return;
+        this.eventBus.emit('asq-plugin', {
+          type: 'asq-canvas',
+          data: {
+            command: 'getSlides',
+          }
+        });
+      },
 
-      // Show the drawing only on its corresponding slide
       created: function(){
         document.addEventListener('asq-ready', function(evt){
           try {
@@ -540,8 +551,11 @@ Example:
       },
 
       ready: function() {
+        // add drawing tool buttons event listeners
         this.$.toggleDrawing.addEventListener('click', this._toggleMenu.bind(this));
         this.$.addSlide.addEventListener('click', this._addSlide.bind(this));
+
+        // change the paper swatch picker icon
         var paletteIcon = this.$.colorBtn.shadowRoot.querySelector('#iconButton');
         paletteIcon.icon = "image:palette";
       },
@@ -579,16 +593,50 @@ Example:
         }
       },
 
+      _indexOfSlide: function(slide) {
+        var children = slide.parentNode.children;
+        var num = 0;
+        for (var i = 0; i < children.length; i++) {
+          if (children[i] == slide) return num;
+          if (children[i].nodeType == 1) num++;
+        }
+        return -1;
+      },
+
+      _idGenerator: function() {
+        var S4 = function() {
+          return (((1+Math.random())*0x10000)|0).toString(16).substring(1);
+        };
+        return (S4()+S4()+"-"+S4()+"-"+S4()+"-"+S4()+"-"+S4()+S4()+S4());
+      },
+
       _addSlide: function() {
-        if (!this.eventBus) return;
-        this.eventBus.emit('asq-plugin', {
-          type: 'asq-canvas',
-          data: {
-            command: 'addSlide',
-            content: '',
-            atEnd: false
+        var addedSlideIndex, slideId;
+        var atLast = false;
+
+        // REVEAL
+        if (document.querySelector('.reveal')) {
+          if (!atLast) { // insert after current slide
+            var currentSlide = document.querySelector('section.present');
+            addedSlideIndex = this._indexOfSlide(currentSlide) + 1;
           }
-        })
+          else { // insert at the end
+            addedSlideIndex = document.querySelector('.reveal .slides').children.length;
+          }
+
+          slideId = "s" + this._idGenerator();
+
+          if (!this.eventBus) return;
+          this.eventBus.emit('asq-plugin', {
+            type: 'asq-canvas',
+            data: {
+              command: 'addSlide',
+              content: '',
+              index: addedSlideIndex,
+              id: slideId
+            }
+          });
+        }
       },
 
     });
