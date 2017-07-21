@@ -200,6 +200,7 @@ Example:
 
       attached: function(){
         this.ctx = this.$.canvas.getContext('2d');
+        this.emptyCanvasData = this.$.canvas.toDataURL();
         this.lastX = 0;
         this.lastY = 0;
         this.color = 0;
@@ -499,6 +500,7 @@ Example:
       },
 
       emitLoadImageEvent: function(data) {
+        data = data || this.emptyCanvasData;
         if (!this.eventBus) return;
         this.eventBus.emit('asq-plugin', {
           type: 'asq-canvas',
