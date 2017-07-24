@@ -85,6 +85,15 @@ Example:
         transition: 0.5s;
       }
 
+      #impress .activeSlideUtils {
+        height: 65px !important;
+      }
+
+      #impress #addSlide, #impress #removeSlide {
+        display: none;
+      }
+
+
       .activeMenu {
         opacity: 1;
         transition: 0.5s;
@@ -118,7 +127,7 @@ Example:
   <div id="drawingTools">
     <div id="slideUtils">
       <paper-icon-button id="addSlide" class="drawingMenu" title="add a new slide" icon="add"></paper-icon-button>
-      <paper-icon-button class="drawingMenu" title="remove a slide" icon="remove"></paper-icon-button>
+      <paper-icon-button id="removeSlide" class="drawingMenu" title="remove a slide" icon="remove"></paper-icon-button>
       <paper-icon-button class="drawingMenu" title="download the current drawing" icon="file-download"></paper-icon-button>
     </div>
 
@@ -292,8 +301,10 @@ Example:
 
         }.bind(this), false);
 
-        // add the additional drawing slides
-        this.emitGetSlidesEvent();
+        // add the additional drawing slides if reveal is used
+        if (document.querySelector('.reveal')) {
+          this.emitGetSlidesEvent();
+        }
 
       },
 
@@ -450,7 +461,11 @@ Example:
       _onConnected: function(evt) {
         this.drawings[this.lastStep] = this.$.canvas.toDataURL();
         this.emitLoadImageEvent(this.drawings[this.lastStep]);
-        this.emitGetSlidesEvent();
+
+        // add additional slides if Reveal is used
+        if (document.querySelector('.reveal')) {
+          this.emitGetSlidesEvent();
+        }
       },
 
       emitClearToEvent: function(){
