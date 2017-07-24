@@ -146,8 +146,8 @@ Example:
 
       loadImage: function(data) {
         let img = new Image();
-        if (this.drawings[step]) {
-          img.src = this.drawings[step];
+        if (data) {
+          img.src = data;
           let context = this.ctx;
           img.addEventListener("load", function(evt) {
             setTimeout(function() {

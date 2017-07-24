@@ -255,7 +255,7 @@ Example:
 
         drawingColor: {
           type: String,
-          value: "black",
+          value: "#000000",
         },
 
         lineWidth: {
@@ -460,12 +460,12 @@ Example:
       },
 
       _onMousedown: function(e) {
+        this.drawingColor = this.$.colorBtn.color;
         this.isDrawing = true;
         this.lastX = e.pageX - this.offsetLeft;
         this.lastY = e.pageY - this.offsetTop;
 
-        this.ctx.fillStyle = rainbow(50,this.color++);
-        if (this.color>50) { this.color = 0; }
+        this.ctx.fillStyle = this.drawingColor;
       },
 
       _onMouseup :function(e) {
