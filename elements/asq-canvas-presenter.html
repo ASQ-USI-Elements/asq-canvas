@@ -196,7 +196,7 @@ Example:
   <paper-dialog id="changeLineWidthDialog">
     <h2>Change the line width</h2>
     <div id="widthSlider">
-      <paper-slider id="lineWidthSlider" value="[[lineWidth]]" max="100" editable></paper-slider>
+      <paper-slider id="lineWidthSlider" value="[[lineWidth]]" min="1" max="50" editable></paper-slider>
     </div>
   </paper-dialog>
 
@@ -410,52 +410,45 @@ Example:
         this.style.pointerEvents = newVal ? "auto" : "none";
       },
 
-      // define a custom fillCircle method
-      fillCircle : function(x1, y1, x2, y2, lineThickness) {
-        //this.fillStyle = fillColor;
+      _drawLine: function(x1, y1, x2, y2, lineThickness) {
+        this._drawOnCanvas("line", x1, y1, lineThickness, x2, y2);
+      },
 
-        var steep = (Math.abs(y2 - y1) > Math.abs(x2 - x1));
-        if (steep) {
-          var x = x1;
-          x1 = y1;
-          y1 = x;
+      _drawCircle: function(x, y, lineThickness) {
+        this._drawOnCanvas("circle", x, y, lineThickness);
+      },
 
-          var y = y2;
-          y2 = x2;
-          x2 = y;
-        }
-        if (x1 > x2) {
-          var x = x1;
-          x1 = x2;
-          x2 = x;
+      _drawOnCanvas: function(form, x1, y1, lineThickness, x2, y2) {
+        var radius = lineThickness/2;
 
-          var y = y1;
-          y1 = y2;
-          y2 = y;
-        }
+        for (var i = 0; i < lineThickness * lineThickness; ++i) {
+          var currentX = i%lineThickness;
+          var currentY = Math.floor(i/lineThickness);
 
-        var dx = x2 - x1, dy = Math.abs(y2 - y1), error = 0, de = dy / dx, yStep = -1, y = y1;
+          var canvasX1 = x1 - radius + currentX;
+          var canvasX2 = x2 - radius + currentX;
 
-        if (y1 < y2) {
-          yStep = 1;
-        }
+          var canvasY1 = y1 - radius + currentY;
+          var canvasY2 = y2 - radius + currentY;
 
-        for (var x = x1; x < x2; x++) {
-          if (steep) {
-            this.ctx.fillRect(y, x, lineThickness, lineThickness);
-          } else {
-            this.ctx.fillRect(x, y, lineThickness, lineThickness);
-          }
+          if (Math.pow(Math.abs(canvasX1 - x1), 2) + Math.pow(Math.abs(canvasY1 - y1), 2) <= radius * radius) {
+            switch (form) {
+              case "circle":
+                this.ctx.fillRect(canvasX1, canvasY1, 1, 1);
+                break;
 
-          error += de;
-          if (error >= 0.5) {
-            y += yStep;
-            error -= 1.0;
+              case "line":
+                this.ctx.beginPath();
+                this.ctx.moveTo(canvasX1, canvasY1);
+                this.ctx.lineTo(canvasX2, canvasY2);
+                this.ctx.stroke();
+                break;
+            }
           }
         }
       },
 
-      clearTo : function() {
+      clearTo: function() {
         this.ctx.clearRect(0, 0, this.$.canvas.width, this.$.canvas.height);
       },
 
@@ -484,8 +477,8 @@ Example:
         mouseX = e.pageX - this.offsetLeft;
         mouseY = e.pageY - this.offsetTop;
 
-        this.fillCircle(mouseX, mouseY, this.lastX, this.lastY, this.lineWidth);
-        this.emitFillEvent(this.ctx.fillStyle, mouseX, mouseY, this.lastX, this.lastY, this.lineWidth)
+        this._drawLine(mouseX, mouseY, this.lastX, this.lastY, this.lineWidth);
+        // this.emitFillEvent(this.ctx.fillStyle, mouseX, mouseY, this.lastX, this.lastY, this.lineWidth)
 
         this.lastX = mouseX;
         this.lastY = mouseY;
@@ -502,6 +495,10 @@ Example:
 
         this.ctx.fillStyle = this.drawingColor;
         this.lineWidth = this.lineWidth;
+
+        mouseX = e.pageX - this.offsetLeft;
+        mouseY = e.pageY - this.offsetTop;
+        this._drawCircle(mouseX, mouseY, this.lineWidth);
       },
 
       _onMouseup :function(e) {
