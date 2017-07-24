@@ -146,13 +146,15 @@ Example:
 
       loadImage: function(data) {
         let img = new Image();
-        img.src = data;
-        let context = this.ctx;
-        img.addEventListener("load", function(evt) {
-          setTimeout(function() {
-            context.drawImage(img, 0, 0);
-          }, 1000);
-        });
+        if (this.drawings[step]) {
+          img.src = this.drawings[step];
+          let context = this.ctx;
+          img.addEventListener("load", function(evt) {
+            setTimeout(function() {
+              context.drawImage(img, 0, 0);
+            }, 1000);
+          });
+        }
       },
 
       _onAsqPlugin: function(evt){

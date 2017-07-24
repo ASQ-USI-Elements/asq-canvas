@@ -119,15 +119,53 @@ Example:
         transform: rotate(-138deg);
       }
 
+      #addSlideDialog {
+        position: absolute;
+        left: 29px;
+        bottom: 80px;
+        width: 180px;
+        height: 100px;
+        text-align: center;
+      }
+
+      #addSlideDialog .buttons {
+        padding: 0;
+        font-size: 12px;
+        font-weight: bolder;
+        line-height: 12px;
+      }
+
+      #addSlideDialog h2 {
+        font-size: 21px;
+        line-height: 20px;
+        padding: 0 0 9px 0;
+        margin-top: 20px;
+      }
+
+      #colorBtn::shadow paper-listbox {
+        position: fixed;
+        left: 68px;
+        bottom: 103px;
+        box-shadow: 0 16px 24px 2px rgba(0, 0, 0, 0.14), 0 6px 30px 5px rgba(0, 0, 0, 0.12), 0 8px 10px -5px rgba(0, 0, 0, 0.4);
+      }
+
     </style>
 
 
   <canvas id="canvas" on-mousemove="_onMousemove" on-mousedown="_onMousedown" on-mouseup="_onMouseup" on-mousewheel="_onMousewheel"></canvas>
 
+  <paper-dialog id="addSlideDialog">
+    <h2>Add a new slide</h2>
+    <div class="buttons">
+      <paper-button on-click="_addSlideAfterCurrentSlide">after current slide</paper-button>
+      <paper-button on-click="_addSlideAtEnd">at the end</paper-button>
+    </div>
+  </paper-dialog>
+
   <div id="drawingTools">
     <div id="slideUtils">
-      <paper-icon-button id="addSlide" class="drawingMenu" title="add a new slide" icon="add"></paper-icon-button>
-      <paper-icon-button id="removeSlide" class="drawingMenu" title="remove a slide" icon="remove"></paper-icon-button>
+      <paper-icon-button id="addSlide" class="drawingMenu" title="add a new slide" icon="add" on-click="_openAddSlideDialog"></paper-icon-button>
+      <paper-icon-button class="drawingMenu" title="remove a slide" icon="remove"></paper-icon-button>
       <paper-icon-button class="drawingMenu" title="download the current drawing" icon="file-download"></paper-icon-button>
     </div>
 
@@ -571,7 +609,7 @@ Example:
       ready: function() {
         // add drawing tool buttons event listeners
         this.$.toggleDrawing.addEventListener('click', this._toggleMenu.bind(this));
-        this.$.addSlide.addEventListener('click', this._addSlide.bind(this));
+        // this.$.addSlide.addEventListener('click', this._addSlide.bind(this));
 
         // change the paper swatch picker icon
         var paletteIcon = this.$.colorBtn.shadowRoot.querySelector('#iconButton');
@@ -628,13 +666,13 @@ Example:
         return (S4()+S4()+"-"+S4()+"-"+S4()+"-"+S4()+"-"+S4()+S4()+S4());
       },
 
-      _addSlide: function() {
+      _addSlide: function(atEnd) {
         var addedSlideIndex, slideId;
         var atLast = false;
 
         // REVEAL
         if (document.querySelector('.reveal')) {
-          if (!atLast) { // insert after current slide
+          if (!atEnd) { // insert after current slide
             var currentSlide = document.querySelector('section.present');
             addedSlideIndex = this._indexOfSlide(currentSlide) + 1;
           }
@@ -655,6 +693,18 @@ Example:
             }
           });
         }
+      },
+
+      _openAddSlideDialog: function() {
+        this.$.addSlideDialog.open();
+      },
+
+      _addSlideAtEnd: function() {
+        this._addSlide(true);
+      },
+
+      _addSlideAfterCurrentSlide: function() {
+        this._addSlide(false);
       },
 
     });
