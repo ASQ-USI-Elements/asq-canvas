@@ -166,7 +166,7 @@ Example:
     <div id="slideUtils">
       <paper-icon-button id="addSlide" class="drawingMenu" title="add a new slide" icon="add" on-click="_openAddSlideDialog"></paper-icon-button>
       <paper-icon-button class="drawingMenu" title="remove a slide" icon="remove"></paper-icon-button>
-      <paper-icon-button class="drawingMenu" title="download the current drawing" icon="file-download"></paper-icon-button>
+      <paper-icon-button class="drawingMenu" title="download the current drawing" icon="file-download" on-click="_downloadCurrentCanvas"></paper-icon-button>
     </div>
 
     <paper-icon-button id="toggleDrawing" title="open drawing tools" icon="image:brush"></paper-icon-button>
@@ -349,6 +349,9 @@ Example:
       resizeCanvas: function () {
         this.$.canvas.width = this.offsetWidth;
         this.$.canvas.height = this.offsetHeight;
+
+        this.loadImage(this.lastStep);
+        this.emitLoadImageEvent(this.drawings[this.lastStep]);
       },
 
       _isInteractiveChanged: function(newVal, oldVal){
@@ -609,7 +612,6 @@ Example:
       ready: function() {
         // add drawing tool buttons event listeners
         this.$.toggleDrawing.addEventListener('click', this._toggleMenu.bind(this));
-        // this.$.addSlide.addEventListener('click', this._addSlide.bind(this));
 
         // change the paper swatch picker icon
         var paletteIcon = this.$.colorBtn.shadowRoot.querySelector('#iconButton');
@@ -706,6 +708,15 @@ Example:
       _addSlideAfterCurrentSlide: function() {
         this._addSlide(false);
       },
+
+      _downloadCurrentCanvas: function() {
+        let link = document.createElement('a');
+        Polymer.dom(this.root).appendChild(link);
+        link.href = this.$.canvas.toDataURL();
+        link.download = 'canvas';
+        link.click();
+        Polymer.dom(this.root).removeChild(link);
+      }
 
     });
   })();
