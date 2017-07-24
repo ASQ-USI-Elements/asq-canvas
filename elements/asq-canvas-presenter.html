@@ -119,10 +119,10 @@ Example:
         transform: rotate(-138deg);
       }
 
-      #addSlideDialog {
+      #addSlideDialog, #changeLineWidthDialog {
         position: absolute;
         left: 29px;
-        bottom: 80px;
+        bottom: 91px;
         width: 180px;
         height: 100px;
         text-align: center;
@@ -135,17 +135,43 @@ Example:
         line-height: 12px;
       }
 
-      #addSlideDialog h2 {
+      #addSlideDialog h2, #changeLineWidthDialog h2 {
         font-size: 21px;
         line-height: 20px;
         padding: 0 0 9px 0;
         margin-top: 20px;
       }
 
+      #widthSlider {
+        margin-top: 0 !important;
+        padding: 0;
+      }
+
+      #widthSlider paper-slider {
+        display: block;
+        width: 150px;
+        margin-top: -8px;
+        padding-left: 17px;
+      }
+
+      #widthSlider paper-slider::shadow #sliderContainer {
+        margin: 0;
+      }
+
+      #widthSlider paper-slider::shadow .slider-input {
+        position: absolute;
+        bottom: 0px;
+        right: 14px;
+      }
+
+      #changeLineWidthDialog h2 {
+        font-size: 17px;
+      }
+
       #colorBtn::shadow paper-listbox {
         position: fixed;
         left: 68px;
-        bottom: 103px;
+        bottom: 114px;
         box-shadow: 0 16px 24px 2px rgba(0, 0, 0, 0.14), 0 6px 30px 5px rgba(0, 0, 0, 0.12), 0 8px 10px -5px rgba(0, 0, 0, 0.4);
       }
 
@@ -167,6 +193,13 @@ Example:
     </div>
   </paper-dialog>
 
+  <paper-dialog id="changeLineWidthDialog">
+    <h2>Change the line width</h2>
+    <div id="widthSlider">
+      <paper-slider id="lineWidthSlider" value="[[lineWidth]]" max="100" editable></paper-slider>
+    </div>
+  </paper-dialog>
+
   <div id="drawingTools">
     <div id="slideUtils">
       <paper-icon-button id="addSlide" class="drawingMenu" title="add a new slide" icon="add" on-click="_openAddSlideDialog"></paper-icon-button>
@@ -177,7 +210,7 @@ Example:
     <paper-icon-button id="toggleDrawing" title="open drawing tools" icon="image:brush"></paper-icon-button>
     <paper-icon-button id="penBtn" class="drawingMenu active-tool" title="start drawing" icon="create"></paper-icon-button>
     <paper-swatch-picker id="colorBtn" class="drawingMenu" title="change color" color="{{selectedColor}}"></paper-swatch-picker>
-    <paper-icon-button id="sizeBtn" class="drawingMenu" title="change pencil size" icon="image:lens"></paper-icon-button>
+    <paper-icon-button id="sizeBtn" class="drawingMenu" title="change pencil size" icon="image:lens" on-click="_openChangeLineWidthDialog"></paper-icon-button>
     <paper-icon-button id="eraseBtn" class="drawingMenu" title="use the eraser" icon="communication:no-sim"></paper-icon-button>
   </div>
 
@@ -451,8 +484,8 @@ Example:
         mouseX = e.pageX - this.offsetLeft;
         mouseY = e.pageY - this.offsetTop;
 
-        this.fillCircle(mouseX, mouseY, this.lastX, this.lastY, 6);
-        this.emitFillEvent(this.ctx.fillStyle, mouseX, mouseY, this.lastX, this.lastY, 6 )
+        this.fillCircle(mouseX, mouseY, this.lastX, this.lastY, this.lineWidth);
+        this.emitFillEvent(this.ctx.fillStyle, mouseX, mouseY, this.lastX, this.lastY, this.lineWidth)
 
         this.lastX = mouseX;
         this.lastY = mouseY;
@@ -461,11 +494,14 @@ Example:
 
       _onMousedown: function(e) {
         this.drawingColor = this.$.colorBtn.color;
+        this.lineWidth = this.$.lineWidthSlider.value;
+
         this.isDrawing = true;
         this.lastX = e.pageX - this.offsetLeft;
         this.lastY = e.pageY - this.offsetTop;
 
         this.ctx.fillStyle = this.drawingColor;
+        this.lineWidth = this.lineWidth;
       },
 
       _onMouseup :function(e) {
@@ -722,6 +758,10 @@ Example:
 
       _openAddSlideDialog: function() {
         this.$.addSlideDialog.open();
+      },
+
+      _openChangeLineWidthDialog: function() {
+        this.$.changeLineWidthDialog.open();
       },
 
       _addSlideAtEnd: function() {
