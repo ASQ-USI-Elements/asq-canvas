@@ -149,6 +149,11 @@ Example:
         box-shadow: 0 16px 24px 2px rgba(0, 0, 0, 0.14), 0 6px 30px 5px rgba(0, 0, 0, 0.12), 0 8px 10px -5px rgba(0, 0, 0, 0.4);
       }
 
+      .active-tool {
+        background-color: #dedede;
+        border-radius: 100px;
+      }
+
     </style>
 
 
@@ -170,7 +175,7 @@ Example:
     </div>
 
     <paper-icon-button id="toggleDrawing" title="open drawing tools" icon="image:brush"></paper-icon-button>
-    <paper-icon-button id="penBtn" class="drawingMenu" title="start drawing" icon="create"></paper-icon-button>
+    <paper-icon-button id="penBtn" class="drawingMenu active-tool" title="start drawing" icon="create"></paper-icon-button>
     <paper-swatch-picker id="colorBtn" class="drawingMenu" title="change color" color="{{selectedColor}}"></paper-swatch-picker>
     <paper-icon-button id="sizeBtn" class="drawingMenu" title="change pencil size" icon="image:lens"></paper-icon-button>
     <paper-icon-button id="eraseBtn" class="drawingMenu" title="use the eraser" icon="communication:no-sim"></paper-icon-button>
@@ -241,7 +246,22 @@ Example:
         lastStep: {
           type: String,
           value: "",
-        }
+        },
+
+        activeTool: {
+          type: String,
+          value: "pen",
+        },
+
+        drawingColor: {
+          type: String,
+          value: "black",
+        },
+
+        lineWidth: {
+          type: Number,
+          value: 6,
+        },
       },
 
 
@@ -250,7 +270,6 @@ Example:
         this.emptyCanvasData = this.$.canvas.toDataURL();
         this.lastX = 0;
         this.lastY = 0;
-        this.color = 0;
         this.activeCanvas = false;
         this.keys = {
                       17: false, // control
@@ -612,6 +631,9 @@ Example:
       ready: function() {
         // add drawing tool buttons event listeners
         this.$.toggleDrawing.addEventListener('click', this._toggleMenu.bind(this));
+        this.$.penBtn.addEventListener('click', this._draw.bind(this));
+        this.$.eraseBtn.addEventListener('click', this._erase.bind(this));
+
 
         // change the paper swatch picker icon
         var paletteIcon = this.$.colorBtn.shadowRoot.querySelector('#iconButton');
@@ -631,10 +653,10 @@ Example:
           this.isInteractive = true;
           this.emitMakeInteractiveEvent();
           this.activeCanvas = !this.activeCanvas;
-
-          this.$.slideUtils.className = "activeSlideUtils";
+          this.$.slideUtils.classList.add('activeSlideUtils');
           Polymer.dom(this.root).querySelectorAll('.drawingMenu').forEach(function(button) {
-            button.className = "activeMenu"
+            button.classList.remove('drawingMenu');
+            button.classList.add('activeMenu');
           });
         }
         else {
@@ -646,7 +668,8 @@ Example:
 
           this.$.slideUtils.className = "";
           Polymer.dom(this.root).querySelectorAll('.activeMenu').forEach(function(button) {
-            button.className = "drawingMenu"
+            button.classList.remove('activeMenu');
+            button.classList.add('drawingMenu');
           });
         }
       },
@@ -716,7 +739,19 @@ Example:
         link.download = 'canvas';
         link.click();
         Polymer.dom(this.root).removeChild(link);
-      }
+      },
+
+      _draw: function(evt) {
+        this.activeTool = "pen";
+        evt.target.classList.add('active-tool');
+        if (this.$.eraseBtn.classList.contains('active-tool')) this.$.eraseBtn.classList.remove('active-tool');
+      },
+
+      _erase: function(evt) {
+        this.activeTool = "eraser";
+        evt.target.classList.add('active-tool');
+        if (this.$.penBtn.classList.contains('active-tool')) this.$.penBtn.classList.remove('active-tool');
+      },
 
     });
   })();
