@@ -71,6 +71,11 @@ Example:
           value: false,
           observer: "_isInteractiveChanged",
           notify: true
+        },
+
+        lastDrawing: {
+          type: Object,
+          value: {},
         }
       },
 
@@ -89,53 +94,48 @@ Example:
       resizeCanvas: function () {
         this.$.canvas.width = this.offsetWidth;
         this.$.canvas.height = this.offsetHeight;
+
+        this.loadImage(this.lastDrawing.drawing);
       },
 
       _isInteractiveChanged: function(newVal, oldVal){
         this.style.pointerEvents = newVal ? "auto" : "none";
       },
 
-      // define a custom fillCircle method
-      fillCircle : function(x1, y1, x2, y2, lineThickness) {
-        //this.fillStyle = fillColor;
+      _drawLine: function(x1, y1, x2, y2, lineThickness) {
+        this._drawOnCanvas("line", x1, y1, lineThickness, x2, y2);
+      },
 
-        var steep = (Math.abs(y2 - y1) > Math.abs(x2 - x1));
-        if (steep) {
-          var x = x1;
-          x1 = y1;
-          y1 = x;
+      _drawCircle: function(x, y, lineThickness) {
+        this._drawOnCanvas("circle", x, y, lineThickness);
+      },
 
-          var y = y2;
-          y2 = x2;
-          x2 = y;
-        }
-        if (x1 > x2) {
-          var x = x1;
-          x1 = x2;
-          x2 = x;
+      _drawOnCanvas: function(form, x1, y1, lineThickness, x2, y2) {
+        var radius = lineThickness/2;
 
-          var y = y1;
-          y1 = y2;
-          y2 = y;
-        }
+        for (var i = 0; i < lineThickness * lineThickness; ++i) {
+          var currentX = i%lineThickness;
+          var currentY = Math.floor(i/lineThickness);
 
-        var dx = x2 - x1, dy = Math.abs(y2 - y1), error = 0, de = dy / dx, yStep = -1, y = y1;
+          var canvasX1 = x1 - radius + currentX;
+          var canvasY1 = y1 - radius + currentY;
 
-        if (y1 < y2) {
-          yStep = 1;
-        }
+          var canvasX2 = x2 - radius + currentX;
+          var canvasY2 = y2 - radius + currentY;
 
-        for (var x = x1; x < x2; x++) {
-          if (steep) {
-            this.ctx.fillRect(y, x, lineThickness, lineThickness);
-          } else {
-            this.ctx.fillRect(x, y, lineThickness, lineThickness);
-          }
+          if (Math.pow(Math.abs(canvasX1 - x1), 2) + Math.pow(Math.abs(canvasY1 - y1), 2) < radius * radius) {
+            switch (form) {
+              case "circle":
+                this.ctx.fillRect(canvasX1, canvasY1, 1, 1);
+                break;
 
-          error += de;
-          if (error >= 0.5) {
-            y += yStep;
-            error -= 1.0;
+              case "line":
+                this.ctx.beginPath();
+                this.ctx.moveTo(canvasX1, canvasY1);
+                this.ctx.lineTo(canvasX2, canvasY2);
+                this.ctx.stroke();
+                break;
+            }
           }
         }
       },
@@ -164,8 +164,14 @@ Example:
 
         switch (d.command){
           case "fillCircle":
-            this.ctx.fillStyle = d.fillStyle;
-            this.fillCircle(d.mouseX, d.mouseY, d.lastX, d.lastY, d.lineThickness);
+            this.drawingColor = d.drawingColor;
+            this.lineThickness = d.lineThickness;
+            if (d.form == "circle") {
+              this._drawCircle(d.mouseX, d.mouseY, this.lineThickness);
+            }
+            else if (d.form == "line") {
+              this._drawLine(d.mouseX, d.mouseY, d.lastX, d.lastY, this.lineThickness);
+            }
             break;
           case "clearTo":
             this.clearTo();;
@@ -178,6 +184,7 @@ Example:
             break;
 
           case "loadImage":
+            this.lastDrawing.drawing = d.dataURL;
             this.loadImage(d.dataURL);
             break;
         }

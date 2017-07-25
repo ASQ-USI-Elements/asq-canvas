@@ -403,7 +403,6 @@ Example:
         this.$.canvas.height = this.offsetHeight;
 
         this.loadImage(this.lastStep);
-        this.emitLoadImageEvent(this.drawings[this.lastStep]);
       },
 
       _isInteractiveChanged: function(newVal, oldVal){
@@ -426,9 +425,9 @@ Example:
           var currentY = Math.floor(i/lineThickness);
 
           var canvasX1 = x1 - radius + currentX;
-          var canvasX2 = x2 - radius + currentX;
-
           var canvasY1 = y1 - radius + currentY;
+
+          var canvasX2 = x2 - radius + currentX;
           var canvasY2 = y2 - radius + currentY;
 
           if (Math.pow(Math.abs(canvasX1 - x1), 2) + Math.pow(Math.abs(canvasY1 - y1), 2) < radius * radius) {
@@ -478,7 +477,7 @@ Example:
         mouseY = e.pageY - this.offsetTop;
 
         this._drawLine(mouseX, mouseY, this.lastX, this.lastY, this.lineWidth);
-        // this.emitFillEvent(this.ctx.fillStyle, mouseX, mouseY, this.lastX, this.lastY, this.lineWidth)
+        this.emitFillEvent(this.drawingColor, "line", mouseX, mouseY, this.lineWidth, this.lastX, this.lastY)
 
         this.lastX = mouseX;
         this.lastY = mouseY;
@@ -494,11 +493,12 @@ Example:
         this.lastY = e.pageY - this.offsetTop;
 
         this.ctx.fillStyle = this.drawingColor;
-        this.lineWidth = this.lineWidth;
 
         mouseX = e.pageX - this.offsetLeft;
         mouseY = e.pageY - this.offsetTop;
         this._drawCircle(mouseX, mouseY, this.lineWidth);
+        this.emitFillEvent(this.drawingColor, "circle", mouseX, mouseY, this.lineWidth)
+
       },
 
       _onMouseup :function(e) {
@@ -540,12 +540,14 @@ Example:
         }
 
         // erase the current drawing
-        this.clearTo();
-        this.emitClearToEvent();
+        if (this.ctx) {
+          this.clearTo();
+          this.emitClearToEvent();
 
-        // draw the drawing of the new slide if there is one
-        this.loadImage(id);
-        this.emitLoadImageEvent(this.drawings[id]);
+          // draw the drawing of the new slide if there is one
+          this.loadImage(id);
+          this.emitLoadImageEvent(this.drawings[id]);
+        }
 
         this.lastStep = id;
       },
@@ -591,13 +593,14 @@ Example:
         });
       },
 
-      emitFillEvent: function(fillStyle, mouseX, mouseY, lastX, lastY, lineThickness){
+      emitFillEvent: function(fillStyle, form, mouseX, mouseY, lineThickness, lastX, lastY){
         if (!this.eventBus) return;
         this.eventBus.emit('asq-plugin', {
           type: 'asq-canvas',
           data: {
             command: "fillCircle",
             fillStyle: fillStyle,
+            form: form,
             mouseX: mouseX,
             mouseY: mouseY,
             lastX: lastX,
