@@ -152,6 +152,8 @@ Example:
           case "fillCircle":
             this.drawingColor = d.drawingColor;
             this.lineThickness = d.lineThickness;
+            this.ctx.fillStyle = this.drawingColor;
+            this.ctx.strokeStyle = this.drawingColor;
             if (d.form == "circle") {
               this._drawCircle(d.mouseX, d.mouseY, this.lineThickness);
             }

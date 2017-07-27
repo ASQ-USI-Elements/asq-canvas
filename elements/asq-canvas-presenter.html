@@ -183,7 +183,7 @@ Example:
     </style>
 
 
-  <canvas id="canvas" on-mousemove="_onMousemove" on-mousedown="_onMousedown" on-mouseup="_onMouseup" on-mousewheel="_onMousewheel"></canvas>
+  <canvas id="canvas" on-mousemove="_onMousemove" on-mousedown="_onMousedown" on-mouseup="_onMouseup"></canvas>
 
   <paper-dialog id="addSlideDialog">
     <h2>Add a new slide</h2>
@@ -468,6 +468,8 @@ Example:
 
       // bind mouse events
       _onMousemove: function(e) {
+        this.ctx.strokeStyle = this.drawingColor;
+
         if (!this.isDrawing) {
           return;
         }
@@ -503,24 +505,6 @@ Example:
         this.isDrawing = false;
         this.saveDrawingLocally();
         this.emitSaveDrawingsEvent(this.drawings);
-      },
-
-      _onMousewheel: function(e) {
-        var delta = e.detail ? e.detail * (-120) : e.wheelDelta;
-        this.ctx.fillStyle = "rgb(" + delta + ",0,0)";
-      },
-
-      _onQuestionType: function(evt){
-        if(!evt || ! evt.questionType) return;
-
-        if(evt.questionType == 'asq-text-input-q'){
-          if(evt.type == "progress"){
-            this._onProgress(evt);
-          }
-          else if(evt.type == "restorePresenter"){
-            this._onRestorePresenter(evt);
-          }
-        }
       },
 
       _onAsqPluginCustomData: function(evt) {
@@ -571,13 +555,13 @@ Example:
         });
       },
 
-      emitFillEvent: function(fillStyle, form, mouseX, mouseY, lineThickness, lastX, lastY){
+      emitFillEvent: function(drawingColor, form, mouseX, mouseY, lineThickness, lastX, lastY){
         if (!this.eventBus) return;
         this.eventBus.emit('asq-plugin', {
           type: 'asq-canvas',
           data: {
             command: "fillCircle",
-            fillStyle: fillStyle,
+            drawingColor: drawingColor,
             form: form,
             mouseX: mouseX,
             mouseY: mouseY,
