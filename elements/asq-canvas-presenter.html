@@ -370,11 +370,9 @@ Example:
           if (drawCommand) {
             if (this.activeCanvas) {
               this.isInteractive = false;
-              this.emitMakeNonInteractiveEvent();
               this.activeCanvas = !this.activeCanvas;
             } else {
               this.isInteractive = true;
-              this.emitMakeInteractiveEvent();
               this.activeCanvas = !this.activeCanvas;
             }
           }
@@ -573,26 +571,6 @@ Example:
         });
       },
 
-      emitMakeNonInteractiveEvent: function(){
-        if (!this.eventBus) return;
-        this.eventBus.emit('asq-plugin', {
-          type: 'asq-canvas',
-          data: {
-            command: "makeNonInteractive"
-          }
-        });
-      },
-
-      emitMakeInteractiveEvent: function(){
-        if (!this.eventBus) return;
-        this.eventBus.emit('asq-plugin', {
-          type: 'asq-canvas',
-          data: {
-            command: "makeInteractive"
-          }
-        });
-      },
-
       emitFillEvent: function(fillStyle, form, mouseX, mouseY, lineThickness, lastX, lastY){
         if (!this.eventBus) return;
         this.eventBus.emit('asq-plugin', {
@@ -687,7 +665,6 @@ Example:
         if (evt.target.icon == "image:brush") {
           evt.target.icon = "clear";
           this.isInteractive = true;
-          this.emitMakeInteractiveEvent();
           this.activeCanvas = !this.activeCanvas;
           this.$.slideUtils.classList.add('activeSlideUtils');
           Polymer.dom(this.root).querySelectorAll('.drawingMenu').forEach(function(button) {
@@ -698,7 +675,6 @@ Example:
         else {
           evt.target.icon = "image:brush";
           this.isInteractive = false;
-          this.emitMakeNonInteractiveEvent();
           evt.target.style.pointerEvents = "auto";
           this.activeCanvas = !this.activeCanvas;
 

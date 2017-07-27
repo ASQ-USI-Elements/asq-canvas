@@ -63,16 +63,6 @@ Example:
           notify: true
         },
 
-        /**
-         * whether the canvas will accept pointer events or not.
-         */
-        isInteractive: {
-          type: Boolean,
-          value: false,
-          observer: "_isInteractiveChanged",
-          notify: true
-        },
-
         lastDrawing: {
           type: Object,
           value: {},
@@ -96,10 +86,6 @@ Example:
         this.$.canvas.height = this.offsetHeight;
 
         this.loadImage(this.lastDrawing.drawing);
-      },
-
-      _isInteractiveChanged: function(newVal, oldVal){
-        this.style.pointerEvents = newVal ? "auto" : "none";
       },
 
       _drawLine: function(x1, y1, x2, y2, lineThickness) {
@@ -175,12 +161,6 @@ Example:
             break;
           case "clearTo":
             this.clearTo();;
-            break;
-          case "makeInteractive":
-            this.isInteractive = true;
-            break;
-          case "makeNonInteractive":
-            this.isInteractive = false;
             break;
 
           case "loadImage":
