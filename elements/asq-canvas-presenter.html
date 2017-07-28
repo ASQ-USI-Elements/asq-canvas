@@ -334,7 +334,7 @@ Example:
         }.bind(this));
 
         document.addEventListener("keyup", function(event) {
-          let drawCommand, saveCommand; // control + d or s respectively
+          var drawCommand, saveCommand; // control + d or s respectively
 
           switch (event.keyCode) {
             case 17:
@@ -379,7 +379,7 @@ Example:
 
           if (saveCommand) {
             // download the canvas
-            let link = document.createElement('a');
+            var link = document.createElement('a');
             Polymer.dom(this.root).appendChild(link);
             link.href = this.$.canvas.toDataURL();
             link.download = 'canvas';
@@ -450,10 +450,10 @@ Example:
       },
 
       loadImage: function(step) {
-        let img = new Image();
+        var img = new Image();
         if (this.drawings[step]) {
           img.src = this.drawings[step];
-          let context = this.ctx;
+          var context = this.ctx;
           img.addEventListener("load", function(evt) {
             setTimeout(function() {
               context.drawImage(img, 0, 0);
@@ -557,6 +557,11 @@ Example:
 
       emitFillEvent: function(drawingColor, form, mouseX, mouseY, lineThickness, lastX, lastY){
         if (!this.eventBus) return;
+
+        // get the current width and height of the presenter
+        var pWidth = parseInt(getComputedStyle(document.body, null).width);
+        var pHeight = parseInt(getComputedStyle(document.body, null).height);
+
         this.eventBus.emit('asq-plugin', {
           type: 'asq-canvas',
           data: {
@@ -567,7 +572,9 @@ Example:
             mouseY: mouseY,
             lastX: lastX,
             lastY: lastY,
-            lineThickness : lineThickness
+            lineThickness: lineThickness,
+            pWidth: pWidth,
+            pHeight: pHeight
           }
         });
       },
@@ -733,7 +740,7 @@ Example:
       },
 
       _downloadCurrentCanvas: function() {
-        let link = document.createElement('a');
+        var link = document.createElement('a');
         Polymer.dom(this.root).appendChild(link);
         link.href = this.$.canvas.toDataURL();
         link.download = 'canvas';

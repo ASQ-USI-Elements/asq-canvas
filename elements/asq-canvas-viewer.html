@@ -131,15 +131,15 @@ Example:
       },
 
       loadImage: function(data) {
-        let img = new Image();
+        var img = new Image();
         if (data) {
-          img.src = data;
-          let context = this.ctx;
+          var context = this.ctx;
           img.addEventListener("load", function(evt) {
             setTimeout(function() {
               context.drawImage(img, 0, 0);
             }, 1000);
           });
+          img.src = data;
         }
       },
 
@@ -150,15 +150,29 @@ Example:
 
         switch (d.command){
           case "fillCircle":
+            // calculate the viewer's x and y
+            var vWidth = parseInt(getComputedStyle(document.body, null).width);
+            var vHeight = parseInt(getComputedStyle(document.body, null).height);
+
+            var x1 = this._computeCoordinate(d.mouseX, d.pWidth, vWidth);
+            var y1 = this._computeCoordinate(d.mouseY, d.pHeight, vHeight);
+
+            var x2 = this._computeCoordinate(d.lastX, d.pWidth, vWidth);
+            var y2 = this._computeCoordinate(d.lastY, d.pHeight, vHeight);
+
+            // calculate the lineThickness for the viewer
+            var lineThickness = d.lineThickness * (vWidth * vHeight)/(d.pWidth * d.pHeight)
+
+            // set the drawing properties
             this.drawingColor = d.drawingColor;
-            this.lineThickness = d.lineThickness;
+            this.lineThickness = lineThickness;
             this.ctx.fillStyle = this.drawingColor;
             this.ctx.strokeStyle = this.drawingColor;
             if (d.form == "circle") {
-              this._drawCircle(d.mouseX, d.mouseY, this.lineThickness);
+              this._drawCircle(x1, y1, this.lineThickness);
             }
             else if (d.form == "line") {
-              this._drawLine(d.mouseX, d.mouseY, d.lastX, d.lastY, this.lineThickness);
+              this._drawLine(x1, y1, x2, y2, this.lineThickness);
             }
             break;
           case "clearTo":
@@ -167,9 +181,13 @@ Example:
 
           case "loadImage":
             this.lastDrawing.drawing = d.dataURL;
-            this.loadImage(d.dataURL);
+            this.loadImage(this.lastDrawing.drawing);
             break;
         }
+      },
+
+      _computeCoordinate: function(pCoordinate, pSize, vSize) {
+        return pCoordinate * vSize/pSize;
       },
 
       _eventBusChanged: function (eventBus, old) {
