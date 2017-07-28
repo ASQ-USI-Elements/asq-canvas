@@ -25,3 +25,7 @@ var ASQ = window.ASQ || {};
   }
 
 };
+
+var asqCanvasElementBehavior = ASQ.asqElementBehavior;
+asqCanvasElementBehavior.push(canvasElementBehaviour);
+ASQ.asqCanvasElementBehavior = [asqCanvasElementBehavior];
