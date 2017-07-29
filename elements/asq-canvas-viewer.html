@@ -2,6 +2,7 @@
 <link rel="import" href="../../iron-flex-layout/iron-flex-layout.html">
 <link rel="import" href="../../asq-base/asq-base.html">
 <link rel="import" href="asq-canvas-behaviour.html">
+<link rel="import" href="asq-canvas-style.html">
 
 <!--
 `asq-canvas-viewer` provides the presenter view of `asq-text-input-q-stats`.
@@ -22,55 +23,24 @@ Example:
 
   <template>
 
-    <style>
-      :host {
-        @apply(--layout-vertical);
-        @apply(--layout-flex);
-      }
+    <style include="asq-canvas-style"></style>
 
-      #canvas{
-        width: 100%;
-        @apply(--layout-flex);
-        cursor: crosshair;
-      }
-
-      #canvas:active {
-        cursor: crosshair;
-      }
-
-    </style>
-
-
-  <canvas id="canvas"></canvas>
+    <canvas id="canvas"></canvas>
 
   </template>
 </dom-module>
+
 <script>
   (function() {
 
     Polymer({
-
       is: 'asq-canvas-viewer',
       behaviors: [ASQ.asqCanvasElementBehavior],
 
       properties: {
-
         lastDrawing: {
           type: Object,
           value: {},
-        }
-      },
-
-      loadImage: function(data) {
-        var img = new Image();
-        if (data) {
-          var context = this.ctx;
-          img.addEventListener("load", function(evt) {
-            setTimeout(function() {
-              context.drawImage(img, 0, 0);
-            }, 1000);
-          });
-          img.src = data;
         }
       },
 
@@ -112,13 +82,26 @@ Example:
 
           case "loadImage":
             this.lastDrawing.drawing = d.dataURL;
-            this.loadImage(this.lastDrawing.drawing);
+            this._loadImage(this.lastDrawing.drawing);
             break;
         }
       },
 
       _computeCoordinate: function(pCoordinate, pSize, vSize) {
         return pCoordinate * vSize/pSize;
+      },
+
+      _loadImage: function(data) {
+        var img = new Image();
+        if (data) {
+          var context = this.ctx;
+          img.addEventListener("load", function(evt) {
+            setTimeout(function() {
+              context.drawImage(img, 0, 0);
+            }, 1000);
+          });
+          img.src = data;
+        }
       },
 
     });

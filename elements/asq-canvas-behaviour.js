@@ -40,10 +40,10 @@ var ASQ = window.ASQ || {};
     this.$.canvas.height = this.offsetHeight;
 
     if (this.role == 'viewer') {
-      this.loadImage(this.lastDrawing.drawing);
+      this._loadImage(this.lastDrawing.drawing);
     }
     else {
-      this.loadImage(this.lastStep);
+      this._loadImage(this.lastStep);
     }
   },
 
