@@ -1,6 +1,7 @@
 <link rel="import" href="../../polymer/polymer.html">
 <link rel="import" href="../../iron-flex-layout/iron-flex-layout.html">
 <link rel="import" href="../../asq-base/asq-base.html">
+<link rel="import" href="asq-canvas-behaviour.html">
 
 <!--
 `asq-canvas-viewer` provides the presenter view of `asq-text-input-q-stats`.
@@ -54,80 +55,10 @@ Example:
 
       properties: {
 
-        /**
-         * Event bus to communicate with ASQ.
-         */
-        eventBus: {
-          type: Object,
-          observer: "_eventBusChanged",
-          notify: true
-        },
-
         lastDrawing: {
           type: Object,
           value: {},
         }
-      },
-
-      attached: function(){
-
-        this.ctx = this.$.canvas.getContext('2d');
-        this.lastX = 0;
-        this.lastY = 0;
-        this.color = 0;
-        this.activeCanvas = false;
-
-        window.addEventListener('resize', this.resizeCanvas.bind(this), false);
-        this.resizeCanvas();
-      },
-
-      resizeCanvas: function () {
-        this.$.canvas.width = this.offsetWidth;
-        this.$.canvas.height = this.offsetHeight;
-
-        this.loadImage(this.lastDrawing.drawing);
-      },
-
-      _drawLine: function(x1, y1, x2, y2, lineThickness) {
-        this._drawOnCanvas("line", x1, y1, lineThickness, x2, y2);
-      },
-
-      _drawCircle: function(x, y, lineThickness) {
-        this._drawOnCanvas("circle", x, y, lineThickness);
-      },
-
-      _drawOnCanvas: function(form, x1, y1, lineThickness, x2, y2) {
-        var radius = lineThickness/2;
-
-        for (var i = 0; i < lineThickness * lineThickness; ++i) {
-          var currentX = i%lineThickness;
-          var currentY = Math.floor(i/lineThickness);
-
-          var canvasX1 = x1 - radius + currentX;
-          var canvasY1 = y1 - radius + currentY;
-
-          var canvasX2 = x2 - radius + currentX;
-          var canvasY2 = y2 - radius + currentY;
-
-          if (Math.pow(Math.abs(canvasX1 - x1), 2) + Math.pow(Math.abs(canvasY1 - y1), 2) < radius * radius) {
-            switch (form) {
-              case "circle":
-                this.ctx.fillRect(canvasX1, canvasY1, 1, 1);
-                break;
-
-              case "line":
-                this.ctx.beginPath();
-                this.ctx.moveTo(canvasX1, canvasY1);
-                this.ctx.lineTo(canvasX2, canvasY2);
-                this.ctx.stroke();
-                break;
-            }
-          }
-        }
-      },
-
-      clearTo : function() {
-        this.ctx.clearRect(0, 0, this.$.canvas.width, this.$.canvas.height);
       },
 
       loadImage: function(data) {
@@ -189,12 +120,6 @@ Example:
       _computeCoordinate: function(pCoordinate, pSize, vSize) {
         return pCoordinate * vSize/pSize;
       },
-
-      _eventBusChanged: function (eventBus, old) {
-        if(!eventBus) return;
-        eventBus.on('asq-plugin', this._onAsqPlugin.bind(this));
-      },
-
 
     });
   })();

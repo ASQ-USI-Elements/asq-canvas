@@ -1,6 +1,8 @@
 <link rel="import" href="../../polymer/polymer.html">
 <link rel="import" href="../../iron-flex-layout/iron-flex-layout.html">
 <link rel="import" href="../../asq-base/asq-base.html">
+<link rel="import" href="asq-canvas-behaviour.html">
+
 
 <!--
 `asq-canvas-presenter` provides the presenter view of `asq-canvas`.
@@ -225,15 +227,6 @@ Example:
       behaviors: [ASQ.asqCanvasElementBehavior],
 
       properties: {
-
-        /**
-         * Event bus to communicate with ASQ.
-         */
-        eventBus: {
-          type: Object,
-          notify: true
-        },
-
         /**
          * whether the canvas will accept pointer events or not.
          */
@@ -263,96 +256,8 @@ Example:
       },
 
 
-      attached: function(){
-        this.ctx = this.$.canvas.getContext('2d');
-        this.emptyCanvasData = this.$.canvas.toDataURL();
-        this.lastX = 0;
-        this.lastY = 0;
+      attached: function() {
         this.activeCanvas = false;
-        this.keys = {
-                      17: false, // control
-                      68: false, // d
-                      83: false, // s
-                    };
-
-        window.addEventListener('resize', this.resizeCanvas.bind(this), false);
-        this.resizeCanvas();
-
-        document.addEventListener("keydown", function(event) {
-          switch (event.keyCode) {
-            case 17:
-              this.keys[17] = true;
-              break;
-
-            case 68:
-              this.keys[68] = true;
-              break;
-
-            case 83:
-              this.keys[83] = true;
-              break;
-
-            default:
-              break;
-          }
-
-        }.bind(this));
-
-        document.addEventListener("keyup", function(event) {
-          var drawCommand, saveCommand; // control + d or s respectively
-
-          switch (event.keyCode) {
-            case 17:
-              if (this.keys[68]) {
-                drawCommand = true;
-                this.keys[68] = false;
-              }
-              if (this.keys[83]) {
-                saveCommand = true;
-                this.keys[83] = false;
-              }
-              this.keys[17] = false;
-              break;
-
-            case 68:
-              if (this.keys[17]) {
-                drawCommand = true;
-                this.keys[17] = false;
-              }
-              this.keys[68] = false;
-
-            case 83:
-              if (this.keys[17]) {
-                saveCommand = true;
-                this.keys[17] = false;
-              }
-              this.keys[83] = false;
-
-            default:
-              break;
-          }
-
-          if (drawCommand) {
-            if (this.activeCanvas) {
-              this.isInteractive = false;
-              this.activeCanvas = !this.activeCanvas;
-            } else {
-              this.isInteractive = true;
-              this.activeCanvas = !this.activeCanvas;
-            }
-          }
-
-          if (saveCommand) {
-            // download the canvas
-            var link = document.createElement('a');
-            Polymer.dom(this.root).appendChild(link);
-            link.href = this.$.canvas.toDataURL();
-            link.download = 'canvas';
-            link.click();
-            Polymer.dom(this.root).removeChild(link);
-          }
-
-        }.bind(this), false);
 
         // add the additional drawing slides if reveal is used
         if (document.querySelector('.reveal')) {
@@ -361,57 +266,8 @@ Example:
 
       },
 
-      resizeCanvas: function () {
-        this.$.canvas.width = this.offsetWidth;
-        this.$.canvas.height = this.offsetHeight;
-
-        this.loadImage(this.lastStep);
-      },
-
       _isInteractiveChanged: function(newVal, oldVal){
         this.style.pointerEvents = newVal ? "auto" : "none";
-      },
-
-      _drawLine: function(x1, y1, x2, y2, lineThickness) {
-        this._drawOnCanvas("line", x1, y1, lineThickness, x2, y2);
-      },
-
-      _drawCircle: function(x, y, lineThickness) {
-        this._drawOnCanvas("circle", x, y, lineThickness);
-      },
-
-      _drawOnCanvas: function(form, x1, y1, lineThickness, x2, y2) {
-        var radius = lineThickness/2;
-
-        for (var i = 0; i < lineThickness * lineThickness; ++i) {
-          var currentX = i%lineThickness;
-          var currentY = Math.floor(i/lineThickness);
-
-          var canvasX1 = x1 - radius + currentX;
-          var canvasY1 = y1 - radius + currentY;
-
-          var canvasX2 = x2 - radius + currentX;
-          var canvasY2 = y2 - radius + currentY;
-
-          if (Math.pow(Math.abs(canvasX1 - x1), 2) + Math.pow(Math.abs(canvasY1 - y1), 2) < radius * radius) {
-            switch (form) {
-              case "circle":
-                this.ctx.fillRect(canvasX1, canvasY1, 1, 1);
-                break;
-
-              case "line":
-                this.ctx.beginPath();
-                this.ctx.moveTo(canvasX1, canvasY1);
-                this.ctx.lineTo(canvasX2, canvasY2);
-                this.ctx.stroke();
-                break;
-            }
-          }
-        }
-      },
-
-      clearTo: function() {
-        this.ctx.clearRect(0, 0, this.$.canvas.width, this.$.canvas.height);
       },
 
       loadImage: function(step) {
@@ -431,6 +287,22 @@ Example:
         this.drawings[this.lastStep] = this.$.canvas.toDataURL();
       },
 
+      _onMousedown: function(e) {
+        this.drawingColor = this.$.colorBtn.color;
+        this.lineWidth = this.$.lineWidthSlider.value;
+
+        this.isDrawing = true;
+        this.lastX = e.pageX - this.offsetLeft;
+        this.lastY = e.pageY - this.offsetTop;
+
+        this.ctx.fillStyle = this.drawingColor;
+
+        mouseX = e.pageX - this.offsetLeft;
+        mouseY = e.pageY - this.offsetTop;
+        this._drawCircle(mouseX, mouseY, this.lineWidth);
+        this.emitFillEvent(this.drawingColor, "circle", mouseX, mouseY, this.lineWidth)
+      },
+
       // bind mouse events
       _onMousemove: function(e) {
         this.ctx.strokeStyle = this.drawingColor;
@@ -446,23 +318,6 @@ Example:
 
         this.lastX = mouseX;
         this.lastY = mouseY;
-
-      },
-
-      _onMousedown: function(e) {
-        this.drawingColor = this.$.colorBtn.color;
-        this.lineWidth = this.$.lineWidthSlider.value;
-
-        this.isDrawing = true;
-        this.lastX = e.pageX - this.offsetLeft;
-        this.lastY = e.pageY - this.offsetTop;
-
-        this.ctx.fillStyle = this.drawingColor;
-
-        mouseX = e.pageX - this.offsetLeft;
-        mouseY = e.pageY - this.offsetTop;
-        this._drawCircle(mouseX, mouseY, this.lineWidth);
-        this.emitFillEvent(this.drawingColor, "circle", mouseX, mouseY, this.lineWidth)
 
       },
 
