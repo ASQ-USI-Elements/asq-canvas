@@ -41,7 +41,18 @@ Example:
         lastDrawing: {
           type: Object,
           value: {},
-        }
+        },
+
+        eventBus: {
+          type: Object,
+          observer: "_eventBusChanged",
+          notify: true
+        },
+      },
+
+      _eventBusChanged: function (eventBus, old) {
+        if(!eventBus) return;
+        eventBus.on('asq-plugin', this._onAsqPlugin.bind(this));
       },
 
       _onAsqPlugin: function(evt){
