@@ -61,19 +61,25 @@ Example:
         var d = evt.data;
 
         switch (d.command){
-          case "fillCircle":
-            // calculate the viewer's x and y
-            var vWidth = parseInt(getComputedStyle(document.body, null).width);
-            var vHeight = parseInt(getComputedStyle(document.body, null).height);
+          case "drawOnCanvas":
 
-            var x1 = this._computeCoordinate(d.mouseX, d.pWidth, vWidth);
-            var y1 = this._computeCoordinate(d.mouseY, d.pHeight, vHeight);
+            var currentSlide = document.querySelector('.present');
 
-            var x2 = this._computeCoordinate(d.lastX, d.pWidth, vWidth);
-            var y2 = this._computeCoordinate(d.lastY, d.pHeight, vHeight);
+            // get the width and height of the viewer's current slide
+            var vSlideWidth = currentSlide.getBoundingClientRect().width;
+            var vSlideHeight = document.body.offsetHeight - currentSlide.getBoundingClientRect().top - (document.body.offsetHeight - currentSlide.getBoundingClientRect().bottom);
+
+            // get the midpoint of the viewer's current slide
+            var vSMPX = currentSlide.getBoundingClientRect().left + vSlideWidth/2;
+            var vSMPY = currentSlide.getBoundingClientRect().top + vSlideHeight/2;
+
+            var x1 = this._computeCoordinate(d.mouseX, d.pSlideWidth, vSlideWidth, d.pSMPX, vSMPX);
+            var y1 = this._computeCoordinate(d.mouseY, d.pSlideHeight, vSlideHeight, d.pSMPY, vSMPY);
+            var x2 = this._computeCoordinate(d.lastX, d.pSlideWidth, vSlideWidth, d.pSMPX, vSMPX);
+            var y2 = this._computeCoordinate(d.lastY, d.pSlideHeight, vSlideHeight, d.pSMPY, vSMPY);
 
             // calculate the lineThickness for the viewer
-            var lineThickness = d.lineThickness * (vWidth * vHeight)/(d.pWidth * d.pHeight)
+            var lineThickness = d.lineThickness * (vSlideWidth * vSlideHeight)/(d.pSlideWidth * d.pSlideHeight)
 
             // set the drawing properties
             this.drawingColor = d.drawingColor;
@@ -98,8 +104,8 @@ Example:
         }
       },
 
-      _computeCoordinate: function(pCoordinate, pSize, vSize) {
-        return pCoordinate * vSize/pSize;
+      _computeCoordinate: function(pCoordinate, pSize, vSize, pMP, vMP) {
+        return vMP + (pCoordinate - pMP) * (vSize/pSize);
       },
 
       _loadImage: function(data) {

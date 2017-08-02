@@ -45,12 +45,12 @@ text questions.
 
     <!-- Viewer -->
     <template is="dom-if" if="{{hasRole(role, roles.VIEWER)}}" restamp>
-      <asq-canvas-viewer role="viewer" event-bus="[[eventBus]]"></asq-canvas-viewer>
+      <asq-canvas-viewer role="viewer" event-bus="[[eventBus]]" initial-resize="[[initialResize]]"></asq-canvas-viewer>
     </template>
 
     <!-- Presenter -->
     <template is="dom-if" if="{{hasRole(role, roles.PRESENTER)}}" restamp>
-      <asq-canvas-presenter role="presenter" is-interactive="{{isInteractive}}" event-bus="[[eventBus]]"></asq-canvas-presenter>
+      <asq-canvas-presenter role="presenter" is-interactive="{{isInteractive}}" event-bus="[[eventBus]]" initial-resize="[[initialResize]]"></asq-canvas-presenter>
     </template>
 
   </template>
@@ -81,7 +81,7 @@ text questions.
           value: false,
           observer: "_isInteractiveChanged",
           notify: true
-        }
+        },
       },
 
       created: function(){

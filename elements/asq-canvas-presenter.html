@@ -38,7 +38,7 @@ Example:
     <paper-dialog id="changeLineWidthDialog">
       <h2>Change the line width</h2>
       <div id="widthSlider">
-        <paper-slider id="lineWidthSlider" value="[[lineWidth]]" min="2" max="50" editable></paper-slider>
+        <paper-slider id="lineWidthSlider" value="[[lineWidth]]" min="1" max="50" editable></paper-slider>
       </div>
     </paper-dialog>
 
@@ -91,6 +91,10 @@ Example:
         lastStep: {
           type: String,
           value: "",
+        },
+
+        initialResize: {
+          type: Number,
         },
 
       },
@@ -230,14 +234,23 @@ Example:
       _emitFillEvent: function(drawingColor, form, mouseX, mouseY, lineThickness, lastX, lastY){
         if (!this.eventBus) return;
 
-        // get the current width and height of the presenter
         var pWidth = parseInt(getComputedStyle(document.body, null).width);
         var pHeight = parseInt(getComputedStyle(document.body, null).height);
+
+        var currentSlide = document.querySelector('.present');
+
+        // get the width and height of the current slide
+        var pSlideWidth = currentSlide.getBoundingClientRect().width;
+        var pSlideHeight = document.body.offsetHeight - currentSlide.getBoundingClientRect().top - (document.body.offsetHeight - currentSlide.getBoundingClientRect().bottom);
+
+        // get the midpoint of the current slide
+        var pSMPX = currentSlide.getBoundingClientRect().left + pSlideWidth/2;
+        var pSMPY = currentSlide.getBoundingClientRect().top + pSlideHeight/2;
 
         this.eventBus.emit('asq-plugin', {
           type: 'asq-canvas',
           data: {
-            command: "fillCircle",
+            command: "drawOnCanvas",
             drawingColor: drawingColor,
             form: form,
             mouseX: mouseX,
@@ -245,8 +258,12 @@ Example:
             lastX: lastX,
             lastY: lastY,
             lineThickness: lineThickness,
+            pHeight: pHeight,
             pWidth: pWidth,
-            pHeight: pHeight
+            pSlideWidth: pSlideWidth,
+            pSlideHeight: pSlideHeight,
+            pSMPX: pSMPX,
+            pSMPY: pSMPY
           }
         });
       },
