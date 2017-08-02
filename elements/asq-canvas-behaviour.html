@@ -26,33 +26,25 @@
     },
 
     attached: function() {
-      this.resizeCanvas();
+      this._resizeCanvas();
       this.ctx = this.$.canvas.getContext('2d');
       this.emptyCanvasData = this.$.canvas.toDataURL();
       this.lastX = 0;
       this.lastY = 0;
 
-      window.addEventListener('resize', this.resizeCanvas.bind(this), false);
+      window.addEventListener('resize', this._resizeCanvas.bind(this), false);
 
       if (this.initialResize) {
         console.log("hehe");
-        setTimeout(this.resizeCanvas, this.initialResize);
+        setTimeout(this._resizeCanvas, this.initialResize);
       }
       else {
-        setTimeout(this.resizeCanvas.bind(this), 1000);
+        setTimeout(this._resizeCanvas.bind(this), 1000);
       }
     },
 
-    resizeCanvas: function () {
-      this.$.canvas.width = this.offsetWidth;
-      this.$.canvas.height = this.offsetHeight;
-
-      if (this.role == 'viewer') {
-        this._loadImage(this.lastDrawing.drawing);
-      }
-      else {
-        this._loadImage(this.lastStep);
-      }
+    _clearTo: function() {
+      this.ctx.clearRect(0, 0, this.$.canvas.width, this.$.canvas.height);
     },
 
     _drawLine: function(x1, y1, x2, y2, lineThickness) {
@@ -96,8 +88,29 @@
       }
     },
 
-    clearTo: function() {
-      this.ctx.clearRect(0, 0, this.$.canvas.width, this.$.canvas.height);
+    _loadImage: function(data) {
+      var img = new Image();
+      if (data) {
+        var context = this.ctx;
+        img.addEventListener("load", function(evt) {
+          setTimeout(function() {
+            context.drawImage(img, 0, 0);
+          }, 1000);
+        });
+        img.src = data;
+      }
+    },
+
+    _resizeCanvas: function () {
+      this.$.canvas.width = this.offsetWidth;
+      this.$.canvas.height = this.offsetHeight;
+
+      if (this.role == 'viewer') {
+        this._loadImage(this.lastDrawing.drawing);
+      }
+      else {
+        this._loadImage(this.drawings[this.lastStep]);
+      }
     },
 
   };

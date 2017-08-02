@@ -93,10 +93,6 @@ Example:
           value: "",
         },
 
-        initialResize: {
-          type: Number,
-        },
-
       },
 
       created: function(){
@@ -170,12 +166,12 @@ Example:
 
         // erase the current drawing
         if (this.ctx) {
-          this.clearTo();
+          this._clearTo();
           this._emitClearToEvent();
 
           // draw the drawing of the new slide if there is one
-          this._loadImage(id);
-          this._emitLoadImageEvent(this.drawings[id]);
+          this._loadImage(this.drawings[this.lastStep]);
+          this._emitLoadImageEvent(this.drawings[this.lastStep]);
         }
 
         this.lastStep = id;
@@ -234,18 +230,15 @@ Example:
       _emitFillEvent: function(drawingColor, form, mouseX, mouseY, lineThickness, lastX, lastY){
         if (!this.eventBus) return;
 
-        var pWidth = parseInt(getComputedStyle(document.body, null).width);
-        var pHeight = parseInt(getComputedStyle(document.body, null).height);
-
-        var currentSlide = document.querySelector('.present');
+        var currentSlide = document.querySelector('.present').getBoundingClientRect();
 
         // get the width and height of the current slide
-        var pSlideWidth = currentSlide.getBoundingClientRect().width;
-        var pSlideHeight = document.body.offsetHeight - currentSlide.getBoundingClientRect().top - (document.body.offsetHeight - currentSlide.getBoundingClientRect().bottom);
+        var pSlideWidth = currentSlide.width;
+        var pSlideHeight = document.body.offsetHeight - currentSlide.top - (document.body.offsetHeight - currentSlide.bottom);
 
         // get the midpoint of the current slide
-        var pSMPX = currentSlide.getBoundingClientRect().left + pSlideWidth/2;
-        var pSMPY = currentSlide.getBoundingClientRect().top + pSlideHeight/2;
+        var pSMX = currentSlide.left + pSlideWidth/2;
+        var pSMY = currentSlide.top + pSlideHeight/2;
 
         this.eventBus.emit('asq-plugin', {
           type: 'asq-canvas',
@@ -258,12 +251,10 @@ Example:
             lastX: lastX,
             lastY: lastY,
             lineThickness: lineThickness,
-            pHeight: pHeight,
-            pWidth: pWidth,
             pSlideWidth: pSlideWidth,
             pSlideHeight: pSlideHeight,
-            pSMPX: pSMPX,
-            pSMPY: pSMPY
+            pSMX: pSMX,
+            pSMY: pSMY
           }
         });
       },
@@ -384,19 +375,6 @@ Example:
           return (((1+Math.random())*0x10000)|0).toString(16).substring(1);
         };
         return (S4()+S4()+"-"+S4()+"-"+S4()+"-"+S4()+"-"+S4()+S4()+S4());
-      },
-
-      _loadImage: function(step) {
-        var img = new Image();
-        if (this.drawings[step]) {
-          img.src = this.drawings[step];
-          var context = this.ctx;
-          img.addEventListener("load", function(evt) {
-            setTimeout(function() {
-              context.drawImage(img, 0, 0);
-            }, 1000);
-          });
-        }
       },
 
       _openAddSlideDialog: function() {

@@ -63,20 +63,20 @@ Example:
         switch (d.command){
           case "drawOnCanvas":
 
-            var currentSlide = document.querySelector('.present');
+            var currentSlide = document.querySelector('.present').getBoundingClientRect();
 
             // get the width and height of the viewer's current slide
-            var vSlideWidth = currentSlide.getBoundingClientRect().width;
-            var vSlideHeight = document.body.offsetHeight - currentSlide.getBoundingClientRect().top - (document.body.offsetHeight - currentSlide.getBoundingClientRect().bottom);
+            var vSlideWidth = currentSlide.width;
+            var vSlideHeight = document.body.offsetHeight - currentSlide.top - (document.body.offsetHeight - currentSlide.bottom);
 
             // get the midpoint of the viewer's current slide
-            var vSMPX = currentSlide.getBoundingClientRect().left + vSlideWidth/2;
-            var vSMPY = currentSlide.getBoundingClientRect().top + vSlideHeight/2;
+            var vSMX = currentSlide.left + vSlideWidth/2;
+            var vSMY = currentSlide.top + vSlideHeight/2;
 
-            var x1 = this._computeCoordinate(d.mouseX, d.pSlideWidth, vSlideWidth, d.pSMPX, vSMPX);
-            var y1 = this._computeCoordinate(d.mouseY, d.pSlideHeight, vSlideHeight, d.pSMPY, vSMPY);
-            var x2 = this._computeCoordinate(d.lastX, d.pSlideWidth, vSlideWidth, d.pSMPX, vSMPX);
-            var y2 = this._computeCoordinate(d.lastY, d.pSlideHeight, vSlideHeight, d.pSMPY, vSMPY);
+            var x1 = this._computeCoordinate(d.mouseX, d.pSlideWidth, vSlideWidth, d.pSMX, vSMX);
+            var y1 = this._computeCoordinate(d.mouseY, d.pSlideHeight, vSlideHeight, d.pSMY, vSMY);
+            var x2 = this._computeCoordinate(d.lastX, d.pSlideWidth, vSlideWidth, d.pSMX, vSMX);
+            var y2 = this._computeCoordinate(d.lastY, d.pSlideHeight, vSlideHeight, d.pSMY, vSMY);
 
             // calculate the lineThickness for the viewer
             var lineThickness = d.lineThickness * (vSlideWidth * vSlideHeight)/(d.pSlideWidth * d.pSlideHeight)
@@ -94,7 +94,7 @@ Example:
             }
             break;
           case "clearTo":
-            this.clearTo();;
+            this._clearTo();;
             break;
 
           case "loadImage":
@@ -106,19 +106,6 @@ Example:
 
       _computeCoordinate: function(pCoordinate, pSize, vSize, pMP, vMP) {
         return vMP + (pCoordinate - pMP) * (vSize/pSize);
-      },
-
-      _loadImage: function(data) {
-        var img = new Image();
-        if (data) {
-          var context = this.ctx;
-          img.addEventListener("load", function(evt) {
-            setTimeout(function() {
-              context.drawImage(img, 0, 0);
-            }, 1000);
-          });
-          img.src = data;
-        }
       },
 
     });
