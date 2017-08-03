@@ -26,11 +26,10 @@
     },
 
     attached: function() {
-      this._resizeCanvas();
       this.ctx = this.$.canvas.getContext('2d');
-      this.emptyCanvasData = this.$.canvas.toDataURL();
       this.lastX = 0;
       this.lastY = 0;
+      this._resizeCanvas();
 
       window.addEventListener('resize', this._resizeCanvas.bind(this), false);
 
@@ -47,20 +46,20 @@
       this.ctx.clearRect(0, 0, this.$.canvas.width, this.$.canvas.height);
     },
 
-    _drawLine: function(x1, y1, x2, y2, lineThickness) {
-      this._drawOnCanvas("line", x1, y1, lineThickness, x2, y2);
+    _drawLine: function(x1, y1, x2, y2, lineWidth) {
+      this._drawOnCanvas("line", x1, y1, lineWidth, x2, y2);
     },
 
-    _drawCircle: function(x, y, lineThickness) {
-      this._drawOnCanvas("circle", x, y, lineThickness);
+    _drawCircle: function(x, y, lineWidth) {
+      this._drawOnCanvas("circle", x, y, lineWidth);
     },
 
-    _drawOnCanvas: function(form, x1, y1, lineThickness, x2, y2) {
-      var radius = lineThickness/2;
+    _drawOnCanvas: function(form, x1, y1, lineWidth, x2, y2) {
+      var radius = lineWidth/2;
 
-      for (var i = 0; i < lineThickness * lineThickness; ++i) {
-        var currentX = i%lineThickness;
-        var currentY = Math.floor(i/lineThickness);
+      for (var i = 0; i < lineWidth * lineWidth; ++i) {
+        var currentX = i%lineWidth;
+        var currentY = Math.floor(i/lineWidth);
 
         var canvasX1 = x1 - radius + currentX;
         var canvasY1 = y1 - radius + currentY;
@@ -89,16 +88,25 @@
     },
 
     _loadImage: function(data) {
-      var img = new Image();
-      if (data) {
-        var context = this.ctx;
-        img.addEventListener("load", function(evt) {
-          setTimeout(function() {
-            context.drawImage(img, 0, 0);
-          }, 1000);
-        });
-        img.src = data;
-      }
+      data.forEach(function(drawStep) {
+        this.lineWidth = drawStep.lineWidth;
+        this.drawingColor = drawStep.drawingColor;
+
+        switch (drawStep.form) {
+          case "circle":
+            this.ctx.fillStyle = this.drawingColor;
+            this._drawCircle(drawStep.mouseX, drawStep.mouseY, drawStep.lineWidth);
+            break;
+
+          case "line":
+            this.ctx.strokeStyle = this.drawingColor;
+            this._drawLine(drawStep.mouseX, drawStep.mouseY, this.lastX, this.lastY, drawStep.lineWidth);
+            break;
+        }
+
+        this.lastX = drawStep.mouseX;
+        this.lastY = drawStep.mouseY;
+      }.bind(this));
     },
 
     _resizeCanvas: function () {
@@ -106,10 +114,10 @@
       this.$.canvas.height = this.offsetHeight;
 
       if (this.role == 'viewer') {
-        this._loadImage(this.lastDrawing.drawing);
+        if (this.lastDrawing) this._loadImage(this.lastDrawing);
       }
       else {
-        this._loadImage(this.drawings[this.lastStep]);
+        if (this.lastStep && this.drawings[this.lastStep]) this._loadImage(this.drawings[this.lastStep]);
       }
     },
 

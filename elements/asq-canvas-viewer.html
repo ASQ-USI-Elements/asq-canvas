@@ -39,8 +39,8 @@ Example:
 
       properties: {
         lastDrawing: {
-          type: Object,
-          value: {},
+          type: Array,
+          value: [],
         },
 
         eventBus: {
@@ -78,19 +78,19 @@ Example:
             var x2 = this._computeCoordinate(d.lastX, d.pSlideWidth, vSlideWidth, d.pSMX, vSMX);
             var y2 = this._computeCoordinate(d.lastY, d.pSlideHeight, vSlideHeight, d.pSMY, vSMY);
 
-            // calculate the lineThickness for the viewer
-            var lineThickness = d.lineThickness * (vSlideWidth * vSlideHeight)/(d.pSlideWidth * d.pSlideHeight)
+            // calculate the lineWidth for the viewer
+            var lineWidth = d.lineWidth * (vSlideWidth * vSlideHeight)/(d.pSlideWidth * d.pSlideHeight)
 
             // set the drawing properties
             this.drawingColor = d.drawingColor;
-            this.lineThickness = lineThickness;
+            this.lineWidth = lineWidth;
             this.ctx.fillStyle = this.drawingColor;
             this.ctx.strokeStyle = this.drawingColor;
             if (d.form == "circle") {
-              this._drawCircle(x1, y1, this.lineThickness);
+              this._drawCircle(x1, y1, this.lineWidth);
             }
             else if (d.form == "line") {
-              this._drawLine(x1, y1, x2, y2, this.lineThickness);
+              this._drawLine(x1, y1, x2, y2, this.lineWidth);
             }
             break;
           case "clearTo":
@@ -98,8 +98,10 @@ Example:
             break;
 
           case "loadImage":
-            this.lastDrawing.drawing = d.dataURL;
-            this._loadImage(this.lastDrawing.drawing);
+            if (d.data) {
+              this.lastDrawing = d.data;
+              this._loadImage(this.lastDrawing);
+            }
             break;
         }
       },

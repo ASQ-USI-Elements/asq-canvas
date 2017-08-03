@@ -147,7 +147,6 @@ Example:
 
       // draw the current drawing and retrieve the extra slides if the viewer connects later
       _onConnected: function(evt) {
-        this.drawings[this.lastStep] = this.$.canvas.toDataURL();
         this._emitLoadImageEvent(this.drawings[this.lastStep]);
 
         // add additional slides if Reveal is used
@@ -170,27 +169,37 @@ Example:
           this._emitClearToEvent();
 
           // draw the drawing of the new slide if there is one
-          this._loadImage(this.drawings[this.lastStep]);
-          this._emitLoadImageEvent(this.drawings[this.lastStep]);
+          if (this.drawings[id]) {
+            this._loadImage(this.drawings[id]);
+            this._emitLoadImageEvent(this.drawings[id]);
+          }
         }
 
         this.lastStep = id;
       },
 
       _onMousedown: function(e) {
+        var mouseX = e.pageX - this.offsetLeft;
+        var mouseY = e.pageY - this.offsetTop;
+        this.drawings[this.lastStep] = this.drawings[this.lastStep] || [];
+
         this.drawingColor = this.$.colorBtn.color;
         this.lineWidth = this.$.lineWidthSlider.value;
 
         this.isDrawing = true;
-        this.lastX = e.pageX - this.offsetLeft;
-        this.lastY = e.pageY - this.offsetTop;
-
+        this.lastX = mouseX;
+        this.lastY = mouseY;
         this.ctx.fillStyle = this.drawingColor;
 
-        mouseX = e.pageX - this.offsetLeft;
-        mouseY = e.pageY - this.offsetTop;
         this._drawCircle(mouseX, mouseY, this.lineWidth);
         this._emitFillEvent(this.drawingColor, "circle", mouseX, mouseY, this.lineWidth)
+        this.drawings[this.lastStep].push({
+          form: "circle",
+          mouseX: mouseX,
+          mouseY: mouseY,
+          color: this.drawingColor,
+          lineWidth: this.lineWidth,
+        });
       },
 
       // bind mouse events
@@ -200,11 +209,21 @@ Example:
         if (!this.isDrawing) {
           return;
         }
-        mouseX = e.pageX - this.offsetLeft;
-        mouseY = e.pageY - this.offsetTop;
+        var mouseX = e.pageX - this.offsetLeft;
+        var mouseY = e.pageY - this.offsetTop;
 
         this._drawLine(mouseX, mouseY, this.lastX, this.lastY, this.lineWidth);
         this._emitFillEvent(this.drawingColor, "line", mouseX, mouseY, this.lineWidth, this.lastX, this.lastY)
+
+        this.drawings[this.lastStep].push({
+          form: "line",
+          mouseX: mouseX,
+          mouseY: mouseY,
+          lastX: this.lastX,
+          lastY: this.lastY,
+          color: this.drawingColor,
+          lineWidth: this.lineWidth,
+        });
 
         this.lastX = mouseX;
         this.lastY = mouseY;
@@ -213,7 +232,6 @@ Example:
 
       _onMouseup :function(e) {
         this.isDrawing = false;
-        this.saveDrawingLocally();
         this._emitSaveDrawingsEvent(this.drawings);
       },
 
@@ -227,7 +245,7 @@ Example:
         });
       },
 
-      _emitFillEvent: function(drawingColor, form, mouseX, mouseY, lineThickness, lastX, lastY){
+      _emitFillEvent: function(drawingColor, form, mouseX, mouseY, lineWidth, lastX, lastY){
         if (!this.eventBus) return;
 
         var currentSlide = document.querySelector('.present').getBoundingClientRect();
@@ -244,13 +262,13 @@ Example:
           type: 'asq-canvas',
           data: {
             command: "drawOnCanvas",
-            drawingColor: drawingColor,
             form: form,
             mouseX: mouseX,
             mouseY: mouseY,
             lastX: lastX,
             lastY: lastY,
-            lineThickness: lineThickness,
+            drawingColor: drawingColor,
+            lineWidth: lineWidth,
             pSlideWidth: pSlideWidth,
             pSlideHeight: pSlideHeight,
             pSMX: pSMX,
@@ -286,7 +304,7 @@ Example:
           type: 'asq-canvas',
           data: {
             command: "loadImage",
-            dataURL: data
+            data: data
           }
         });
       },
@@ -383,10 +401,6 @@ Example:
 
       _openChangeLineWidthDialog: function() {
         this.$.changeLineWidthDialog.open();
-      },
-
-      saveDrawingLocally: function() {
-        this.drawings[this.lastStep] = this.$.canvas.toDataURL();
       },
 
       _toggleMenu: function(evt) {
