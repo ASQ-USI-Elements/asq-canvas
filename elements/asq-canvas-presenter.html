@@ -191,14 +191,28 @@ Example:
         this.lastY = mouseY;
         this.ctx.fillStyle = this.drawingColor;
 
+        var currentSlide = document.querySelector('.present').getBoundingClientRect();
+
+        // get the width and height of the current slide
+        this.pSlideWidth = currentSlide.width;
+        this.pSlideHeight = document.body.offsetHeight - currentSlide.top - (document.body.offsetHeight - currentSlide.bottom);
+
+        // get the midpoint of the current slide
+        this.pSMX = currentSlide.left + this.pSlideWidth/2;
+        this.pSMY = currentSlide.top + this.pSlideHeight/2;
+
         this._drawCircle(mouseX, mouseY, this.lineWidth);
-        this._emitFillEvent(this.drawingColor, "circle", mouseX, mouseY, this.lineWidth)
+        this._emitFillEvent("circle", mouseX, mouseY)
         this.drawings[this.lastStep].push({
           form: "circle",
           mouseX: mouseX,
           mouseY: mouseY,
           color: this.drawingColor,
           lineWidth: this.lineWidth,
+          pSlideWidth: this.pSlideWidth,
+          pSlideHeight: this.pSlideHeight,
+          pSMX: this.pSMX,
+          pSMY: this.psMY
         });
       },
 
@@ -213,7 +227,7 @@ Example:
         var mouseY = e.pageY - this.offsetTop;
 
         this._drawLine(mouseX, mouseY, this.lastX, this.lastY, this.lineWidth);
-        this._emitFillEvent(this.drawingColor, "line", mouseX, mouseY, this.lineWidth, this.lastX, this.lastY)
+        this._emitFillEvent("line", mouseX, mouseY)
 
         this.drawings[this.lastStep].push({
           form: "line",
@@ -223,6 +237,10 @@ Example:
           lastY: this.lastY,
           color: this.drawingColor,
           lineWidth: this.lineWidth,
+          pSlideWidth: this.pSlideWidth,
+          pSlideHeight: this.pSlideHeight,
+          pSMX: this.pSMX,
+          pSMY: this.psMY
         });
 
         this.lastX = mouseX;
@@ -245,18 +263,8 @@ Example:
         });
       },
 
-      _emitFillEvent: function(drawingColor, form, mouseX, mouseY, lineWidth, lastX, lastY){
+      _emitFillEvent: function(form, mouseX, mouseY){
         if (!this.eventBus) return;
-
-        var currentSlide = document.querySelector('.present').getBoundingClientRect();
-
-        // get the width and height of the current slide
-        var pSlideWidth = currentSlide.width;
-        var pSlideHeight = document.body.offsetHeight - currentSlide.top - (document.body.offsetHeight - currentSlide.bottom);
-
-        // get the midpoint of the current slide
-        var pSMX = currentSlide.left + pSlideWidth/2;
-        var pSMY = currentSlide.top + pSlideHeight/2;
 
         this.eventBus.emit('asq-plugin', {
           type: 'asq-canvas',
@@ -265,14 +273,14 @@ Example:
             form: form,
             mouseX: mouseX,
             mouseY: mouseY,
-            lastX: lastX,
-            lastY: lastY,
-            drawingColor: drawingColor,
-            lineWidth: lineWidth,
-            pSlideWidth: pSlideWidth,
-            pSlideHeight: pSlideHeight,
-            pSMX: pSMX,
-            pSMY: pSMY
+            lastX: this.lastX,
+            lastY: this.lastY,
+            drawingColor: this.drawingColor,
+            lineWidth: this.lineWidth,
+            pSlideWidth: this.pSlideWidth,
+            pSlideHeight: this.pSlideHeight,
+            pSMX: this.pSMX,
+            pSMY: this.pSMY
           }
         });
       },
