@@ -45,7 +45,7 @@ Example:
     <div id="drawingTools">
       <div id="slideUtils">
         <paper-icon-button id="addSlide" class="drawingMenu" title="add a new slide" icon="add" on-click="_openAddSlideDialog"></paper-icon-button>
-        <paper-icon-button class="drawingMenu" title="remove a slide" icon="remove"></paper-icon-button>
+        <paper-icon-button id="removeSlide" class="drawingMenu" title="remove a slide" icon="remove"></paper-icon-button>
         <paper-icon-button class="drawingMenu" title="download the current drawing" icon="file-download" on-click="_downloadCurrentCanvas"></paper-icon-button>
     </div>
 
@@ -219,7 +219,7 @@ Example:
           form: "circle",
           mouseX: mouseX,
           mouseY: mouseY,
-          color: this.drawingColor,
+          drawingColor: this.drawingColor,
           lineWidth: this.lineWidth,
           pSlideWidth: this.pSlideWidth,
           pSlideHeight: this.pSlideHeight,
@@ -429,7 +429,8 @@ Example:
           evt.target.icon = "clear";
           this.isInteractive = true;
           this.activeCanvas = !this.activeCanvas;
-          this.$.slideUtils.classList.add('activeSlideUtils');
+          if (document.querySelector('.reveal')) this.$.slideUtils.classList.add('activeSlideUtils');
+          else this.$.slideUtils.classList.add('impressSlideUtils');
           Polymer.dom(this.root).querySelectorAll('.drawingMenu').forEach(function(button) {
             button.classList.remove('drawingMenu');
             button.classList.add('activeMenu');

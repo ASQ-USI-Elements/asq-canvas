@@ -129,15 +129,23 @@
     },
 
     _resizeCanvas: function () {
-      this.$.canvas.width = this.offsetWidth;
-      this.$.canvas.height = this.offsetHeight;
+      var resizeAnimation = setInterval(function() {
+        this._clearTo();
+        this.$.canvas.width = this.offsetWidth;
+        this.$.canvas.height = this.offsetHeight;
 
-      if (this.role == 'viewer') {
-        if (this.lastDrawing) this._loadImage(this.lastDrawing, this.currentSlide);
-      }
-      else {
-        if (this.lastStep && this.drawings[this.lastStep]) this._loadImage(this.drawings[this.lastStep]);
-      }
+        if (this.role == 'viewer') {
+          if (this.lastDrawing) this._loadImage(this.lastDrawing, this.currentSlide);
+        }
+        else {
+          if (this.lastStep && this.drawings[this.lastStep]) this._loadImage(this.drawings[this.lastStep]);
+        }
+      }.bind(this), 1);
+
+      setTimeout(function() {
+        clearInterval(resizeAnimation);
+      }, 3000);
+
     },
 
   };
