@@ -100,14 +100,11 @@ Example:
           case "loadImage":
             if (d.data) {
               this.lastDrawing = d.data;
-              this._loadImage(this.lastDrawing);
+              this.currentSlide = d.slideId;
+              this._loadImage(this.lastDrawing, d.slideId);
             }
             break;
         }
-      },
-
-      _computeCoordinate: function(pCoordinate, pSize, vSize, pMP, vMP) {
-        return vMP + (pCoordinate - pMP) * (vSize/pSize);
       },
 
     });

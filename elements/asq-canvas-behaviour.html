@@ -29,12 +29,10 @@
       this.ctx = this.$.canvas.getContext('2d');
       this.lastX = 0;
       this.lastY = 0;
-      this._resizeCanvas();
 
       window.addEventListener('resize', this._resizeCanvas.bind(this), false);
 
       if (this.initialResize) {
-        console.log("hehe");
         setTimeout(this._resizeCanvas, this.initialResize);
       }
       else {
@@ -44,6 +42,10 @@
 
     _clearTo: function() {
       this.ctx.clearRect(0, 0, this.$.canvas.width, this.$.canvas.height);
+    },
+
+    _computeCoordinate: function(pCoordinate, pSize, vSize, pMP, vMP) {
+      return vMP + (pCoordinate - pMP) * (vSize/pSize);
     },
 
     _drawLine: function(x1, y1, x2, y2, lineWidth) {
@@ -87,20 +89,37 @@
       }
     },
 
-    _loadImage: function(data) {
+    _loadImage: function(data, slideId) {
+      if (slideId) var currentSlide = document.getElementById(slideId).getBoundingClientRect();
+      else var currentSlide = document.querySelector('.present').getBoundingClientRect();
+
+      // get the width and height of the viewer's current slide
+      var cSlideWidth = currentSlide.width;
+      var cSlideHeight = document.body.offsetHeight - currentSlide.top - (document.body.offsetHeight - currentSlide.bottom);
+
+      // get the midpoint of the viewer's current slide
+      var cSMX = currentSlide.left + cSlideWidth/2;
+      var cSMY = currentSlide.top + cSlideHeight/2;
+
       data.forEach(function(drawStep) {
-        this.lineWidth = drawStep.lineWidth;
+        var lineWidth = drawStep.lineWidth * (cSlideWidth * cSlideHeight)/(drawStep.pSlideWidth * drawStep.pSlideHeight);
         this.drawingColor = drawStep.drawingColor;
+
+        var x1 = this._computeCoordinate(drawStep.mouseX, drawStep.pSlideWidth, cSlideWidth, drawStep.pSMX, cSMX);
+        var y1 = this._computeCoordinate(drawStep.mouseY, drawStep.pSlideHeight, cSlideHeight, drawStep.pSMY, cSMY);
 
         switch (drawStep.form) {
           case "circle":
             this.ctx.fillStyle = this.drawingColor;
-            this._drawCircle(drawStep.mouseX, drawStep.mouseY, drawStep.lineWidth);
+            this._drawCircle(x1, y1, lineWidth);
             break;
 
           case "line":
+            var x2 = this._computeCoordinate(drawStep.lastX, drawStep.pSlideWidth, cSlideWidth, drawStep.pSMX, cSMX);
+            var y2 = this._computeCoordinate(drawStep.lastY, drawStep.pSlideHeight, cSlideHeight, drawStep.pSMY, cSMY);
+
             this.ctx.strokeStyle = this.drawingColor;
-            this._drawLine(drawStep.mouseX, drawStep.mouseY, this.lastX, this.lastY, drawStep.lineWidth);
+            this._drawLine(x1, y1, x2, y2, lineWidth);
             break;
         }
 
@@ -114,7 +133,7 @@
       this.$.canvas.height = this.offsetHeight;
 
       if (this.role == 'viewer') {
-        if (this.lastDrawing) this._loadImage(this.lastDrawing);
+        if (this.lastDrawing) this._loadImage(this.lastDrawing, this.currentSlide);
       }
       else {
         if (this.lastStep && this.drawings[this.lastStep]) this._loadImage(this.drawings[this.lastStep]);
