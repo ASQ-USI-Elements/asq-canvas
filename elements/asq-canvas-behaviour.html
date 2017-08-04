@@ -103,14 +103,13 @@
 
       data.forEach(function(drawStep) {
         var lineWidth = drawStep.lineWidth * (cSlideWidth * cSlideHeight)/(drawStep.pSlideWidth * drawStep.pSlideHeight);
-        this.drawingColor = drawStep.drawingColor;
 
         var x1 = this._computeCoordinate(drawStep.mouseX, drawStep.pSlideWidth, cSlideWidth, drawStep.pSMX, cSMX);
         var y1 = this._computeCoordinate(drawStep.mouseY, drawStep.pSlideHeight, cSlideHeight, drawStep.pSMY, cSMY);
 
         switch (drawStep.form) {
           case "circle":
-            this.ctx.fillStyle = this.drawingColor;
+            this.ctx.fillStyle = drawStep.drawingColor;
             this._drawCircle(x1, y1, lineWidth);
             break;
 
@@ -118,7 +117,7 @@
             var x2 = this._computeCoordinate(drawStep.lastX, drawStep.pSlideWidth, cSlideWidth, drawStep.pSMX, cSMX);
             var y2 = this._computeCoordinate(drawStep.lastY, drawStep.pSlideHeight, cSlideHeight, drawStep.pSMY, cSMY);
 
-            this.ctx.strokeStyle = this.drawingColor;
+            this.ctx.strokeStyle = drawStep.drawingColor;
             this._drawLine(x1, y1, x2, y2, lineWidth);
             break;
         }
@@ -138,7 +137,7 @@
           if (this.lastDrawing) this._loadImage(this.lastDrawing, this.currentSlide);
         }
         else {
-          if (this.lastStep && this.drawings[this.lastStep]) this._loadImage(this.drawings[this.lastStep]);
+          if (this.lastStep && this.drawings[this.lastStep]) this._loadImage(this.drawings[this.lastStep], this.lastStep);
         }
       }.bind(this), 1);
 
