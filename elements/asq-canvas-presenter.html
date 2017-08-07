@@ -122,6 +122,7 @@ Example:
 
       attached: function() {
         this.activeCanvas = false;
+        this.activeTool = "pen";
 
         // add the additional drawing slides if reveal is used
         if (document.querySelector('.reveal')) {
@@ -197,7 +198,6 @@ Example:
         this.isDrawing = true;
         this.lastX = mouseX;
         this.lastY = mouseY;
-        this.ctx.fillStyle = this.drawingColor;
 
         var currentSlide = document.querySelector('.present').getBoundingClientRect();
 
@@ -208,6 +208,16 @@ Example:
         // get the midpoint of the current slide
         this.pSMX = currentSlide.left + this.pSlideWidth/2;
         this.pSMY = currentSlide.top + this.pSlideHeight/2;
+
+        if (this.activeTool == "pen") {
+          this.ctx.globalCompositeOperation = 'source-over';
+        }
+        else {
+          this.drawingColor = 'rgba(0,0,0,1)';
+          this.ctx.globalCompositeOperation = 'destination-out';
+        }
+
+        this.ctx.fillStyle = this.drawingColor;
 
         this._drawCircle(mouseX, mouseY, this.lineWidth);
         this._emitFillEvent("circle", mouseX, mouseY)
