@@ -163,20 +163,7 @@ Example:
           this._emitGetDrawingsEvent();
         }
 
-        if (document.querySelector('.present')) {
-          var currentSlide = document.querySelector('.present').getBoundingClientRect();
-
-          // get the width and height of the current slide
-          this.pSlideWidth = currentSlide.width;
-          this.pSlideHeight = document.body.offsetHeight - currentSlide.top - (document.body.offsetHeight - currentSlide.bottom);
-
-          // get the midpoint of the current slide
-          this.pSMX = currentSlide.left + this.pSlideWidth/2;
-          this.pSMY = currentSlide.top + this.pSlideHeight/2;
-        }
-
-        // erase the current drawing
-        if (this.ctx) {
+        setTimeout(function() {
           this._clearTo();
           this._emitClearToEvent();
 
@@ -185,7 +172,7 @@ Example:
             this._loadImage(this.drawings[id], id);
             this._emitLoadImageEvent(this.drawings[id]);
           }
-        }
+        }.bind(this), 3000);
 
         this.lastStep = id;
       },
