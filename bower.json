@@ -16,7 +16,8 @@
     "iron-flex-layout": "PolymerElements/iron-flex-layout#^1.3.1",
     "polymer": "Polymer/Polymer#^1.4.0",
     "paper-swatch-picker": "^2.0.0",
-    "paper-styles": "^2.0.0"
+    "paper-styles": "^2.0.0",
+    "iron-icon": "^2.0.1"
   },
   "ignore": [
     "index.js",

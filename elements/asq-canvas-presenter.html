@@ -3,6 +3,8 @@
 <link rel="import" href="../../asq-base/asq-base.html">
 <link rel="import" href="asq-canvas-behaviour.html">
 <link rel="import" href="asq-canvas-style.html">
+<link rel="import" href="asq-canvas-icons.html">
+
 
 <!--
 `asq-canvas-presenter` provides the presenter view of `asq-canvas`.
@@ -53,7 +55,7 @@ Example:
     <paper-icon-button id="penBtn" class="drawingMenu active-tool" title="start drawing" icon="create"></paper-icon-button>
     <paper-swatch-picker id="colorBtn" class="drawingMenu" title="change color" color="{{selectedColor}}"></paper-swatch-picker>
     <paper-icon-button id="sizeBtn" class="drawingMenu" title="change pencil size" icon="image:lens" on-click="_openChangeLineWidthDialog"></paper-icon-button>
-    <paper-icon-button id="eraseBtn" class="drawingMenu" title="use the eraser" icon="communication:no-sim"></paper-icon-button>
+    <paper-icon-button id="eraseBtn" class="drawingMenu" title="use the eraser" icon="asq-canvas-icons:eraser"></paper-icon-button>
   </div>
 
   </template>
