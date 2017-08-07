@@ -163,16 +163,16 @@ Example:
           this._emitGetDrawingsEvent();
         }
 
-        setTimeout(function() {
-          this._clearTo();
-          this._emitClearToEvent();
+        this._clearTo();
+        this._emitClearToEvent();
 
+        setTimeout(function() {
           // draw the drawing of the new slide if there is one
           if (this.drawings[id]) {
             this._loadImage(this.drawings[id], id);
             this._emitLoadImageEvent(this.drawings[id]);
           }
-        }.bind(this), 3000);
+        }.bind(this), 1000);
 
         this.lastStep = id;
       },

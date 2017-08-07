@@ -86,6 +86,7 @@ Example:
             this.lineWidth = lineWidth;
             this.ctx.fillStyle = this.drawingColor;
             this.ctx.strokeStyle = this.drawingColor;
+            this.lastDrawing.push(d);
             if (d.form == "circle") {
               this._drawCircle(x1, y1, this.lineWidth);
             }
