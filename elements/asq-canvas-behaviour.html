@@ -93,11 +93,11 @@
       if (slideId) var currentSlide = document.getElementById(slideId).getBoundingClientRect();
       else var currentSlide = document.querySelector('.present').getBoundingClientRect();
 
-      // get the width and height of the viewer's current slide
+      // get the width and height of the user's current slide
       var cSlideWidth = currentSlide.width;
       var cSlideHeight = document.body.offsetHeight - currentSlide.top - (document.body.offsetHeight - currentSlide.bottom);
 
-      // get the midpoint of the viewer's current slide
+      // get the midpoint of the user's current slide
       var cSMX = currentSlide.left + cSlideWidth/2;
       var cSMY = currentSlide.top + cSlideHeight/2;
 
