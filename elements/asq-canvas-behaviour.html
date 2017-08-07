@@ -103,6 +103,7 @@
 
       data.forEach(function(drawStep) {
         var lineWidth = drawStep.lineWidth * (cSlideWidth * cSlideHeight)/(drawStep.pSlideWidth * drawStep.pSlideHeight);
+        this.ctx.globalCompositeOperation = drawStep.gCO;
 
         var x1 = this._computeCoordinate(drawStep.mouseX, drawStep.pSlideWidth, cSlideWidth, drawStep.pSMX, cSMX);
         var y1 = this._computeCoordinate(drawStep.mouseY, drawStep.pSlideHeight, cSlideHeight, drawStep.pSMY, cSMY);
