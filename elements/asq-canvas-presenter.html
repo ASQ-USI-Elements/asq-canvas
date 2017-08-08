@@ -353,29 +353,30 @@ Example:
         var addedSlideIndex, slideId;
         var atLast = false;
 
-        // REVEAL
-        if (document.querySelector('.reveal')) {
-          if (!atEnd) { // insert after current slide
-            var currentSlide = document.querySelector('section.present');
-            addedSlideIndex = this._indexOfSlide(currentSlide) + 1;
-          }
-          else { // insert at the end
+        if (!atEnd) { // insert after current slide
+          var currentSlide = document.querySelector('section.present');
+          addedSlideIndex = this._indexOfSlide(currentSlide) + 1;
+        }
+        else { // insert at the end
+          if (document.querySelector('.reveal')) {
             addedSlideIndex = document.querySelector('.reveal .slides').children.length;
           }
-
-          slideId = "s" + this._idGenerator();
-
-          if (!this.eventBus) return;
-          this.eventBus.emit('asq-plugin', {
-            type: 'asq-canvas',
-            data: {
-              command: 'addSlide',
-              content: '',
-              index: addedSlideIndex,
-              id: slideId
-            }
-          });
+          else addedSlideIndex = document.querySelector('#impress > div').children.length;
         }
+
+        slideId = "s" + this._idGenerator();
+
+        if (!this.eventBus) return;
+        this.eventBus.emit('asq-plugin', {
+          type: 'asq-canvas',
+          data: {
+            command: 'addSlide',
+            content: '',
+            index: addedSlideIndex,
+            id: slideId
+          }
+        });
+
       },
 
       _addSlideAfterCurrentSlide: function() {
@@ -437,8 +438,7 @@ Example:
           evt.target.icon = "clear";
           this.isInteractive = true;
           this.activeCanvas = !this.activeCanvas;
-          if (document.querySelector('.reveal')) this.$.slideUtils.classList.add('activeSlideUtils');
-          else this.$.slideUtils.classList.add('impressSlideUtils');
+          this.$.slideUtils.classList.add('activeSlideUtils');
           Polymer.dom(this.root).querySelectorAll('.drawingMenu').forEach(function(button) {
             button.classList.remove('drawingMenu');
             button.classList.add('activeMenu');
