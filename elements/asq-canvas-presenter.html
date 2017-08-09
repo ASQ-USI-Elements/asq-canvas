@@ -125,10 +125,7 @@ Example:
         this.activeTool = "pen";
 
         // add the additional drawing slides if reveal is used
-        if (document.querySelector('.reveal')) {
-          this._emitGetSlidesEvent();
-        }
-
+        this._emitGetSlidesEvent();
       },
 
       _subscribeToEvents: function(eventBus) {
@@ -350,7 +347,7 @@ Example:
       },
 
       _addSlide: function(atEnd) {
-        var addedSlideIndex, slideId;
+        var addedSlideIndex, slideId, prevX;
         var atLast = false;
 
         if (!atEnd) { // insert after current slide
@@ -365,6 +362,7 @@ Example:
         }
 
         slideId = "s" + this._idGenerator();
+        prevX = document.querySelector('section.present').dataset.x;
 
         if (!this.eventBus) return;
         this.eventBus.emit('asq-plugin', {
@@ -373,7 +371,8 @@ Example:
             command: 'addSlide',
             content: '',
             index: addedSlideIndex,
-            id: slideId
+            id: slideId,
+            prevX: prevX
           }
         });
 
