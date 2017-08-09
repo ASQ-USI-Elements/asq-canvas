@@ -47,7 +47,7 @@ Example:
     <div id="drawingTools">
       <div id="slideUtils">
         <paper-icon-button id="addSlide" class="drawingMenu" title="add a new slide" icon="add" on-click="_openAddSlideDialog"></paper-icon-button>
-        <paper-icon-button id="removeSlide" class="drawingMenu" title="remove a slide" icon="remove"></paper-icon-button>
+        <paper-icon-button id="removeSlide" class="drawingMenu" title="remove an inserted slide" icon="remove" on-click="_removeSlide"></paper-icon-button>
         <paper-icon-button class="drawingMenu" title="download the current drawing" icon="file-download" on-click="_downloadCurrentCanvas"></paper-icon-button>
     </div>
 
@@ -426,6 +426,21 @@ Example:
 
       _openChangeLineWidthDialog: function() {
         this.$.changeLineWidthDialog.open();
+      },
+
+      _removeSlide: function() {
+        var currentSlide = document.querySelector('section.present');
+
+        if (currentSlide.innerHTML == '') {
+          if (!this.eventBus) return;
+          this.eventBus.emit('asq-plugin', {
+            type: 'asq-canvas',
+            data: {
+              command: 'removeSlide',
+              id: currentSlide.id,
+            }
+          });
+        }
       },
 
       _toggleMenu: function(evt) {
