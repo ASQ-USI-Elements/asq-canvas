@@ -148,11 +148,7 @@ Example:
       // draw the current drawing and retrieve the extra slides if the viewer connects later
       _onConnected: function(evt) {
         this._emitLoadImageEvent(this.drawings[this.lastStep]);
-
-        // add additional slides if Reveal is used
-        if (document.querySelector('.reveal')) {
-          this._emitGetSlidesEvent();
-        }
+        this._emitGetSlidesEvent();
       },
 
       _onGoto: function(evt) {
