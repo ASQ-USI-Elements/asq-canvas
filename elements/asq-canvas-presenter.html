@@ -88,11 +88,11 @@ Example:
         },
 
         /**
-         * name of the last shown slide
+         * Indicates if the canvas got the drawings from the DB.
          */
-        lastStep: {
-          type: String,
-          value: "",
+        gotDrawings: {
+          type: Boolean,
+          value: false,
         },
 
       },
@@ -143,6 +143,7 @@ Example:
         if (evt.data.command == 'storeDrawingsLocally' && evt.data.pluginCustomData) {
             this.drawings = evt.data.pluginCustomData.drawings || {};
         }
+        if (evt.data.command == 'storeDrawingsLocally') this.gotDrawings = true;
       },
 
       // draw the current drawing and retrieve the extra slides if the viewer connects later
@@ -151,33 +152,24 @@ Example:
         this._emitGetSlidesEvent();
       },
 
-      _onGoto: function(evt) {
+      _onGoto: async function(evt) {
         var id = evt.data.step || evt.data.id;
         // we are at the beginning or resume the presentation
         if (!this.lastStep) {
+          if (id == '0' && document.querySelector('.reveal')) {
+            id = document.querySelector('.slides section:first-child').id;
+          }
           this.lastStep = id;
           this._emitGetDrawingsEvent();
         }
 
-        this._clearTo();
-        this._emitClearToEvent();
+        if (!this.gotDrawings) await this._sleep(1000);
 
-        if (document.querySelector('.reveal')) {
-          if (this.drawings[id]) {
-            this._loadImage(this.drawings[id], id);
-            this._emitLoadImageEvent(this.drawings[id]);
-          }
-        }
-        else {
-          setTimeout(function() {
-            if (this.drawings[id]) {
-              this._loadImage(this.drawings[id], id);
-              this._emitLoadImageEvent(this.drawings[id]);
-            }
-          }.bind(this), 1000);
-        }
+        this._changeDrawingOnGoto(id);
+      },
 
-        this.lastStep = id;
+      _sleep: function (ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
       },
 
       _onMousedown: function(e) {
@@ -380,6 +372,28 @@ Example:
 
       _addSlideAtEnd: function() {
         this._addSlide(true);
+      },
+
+      _changeDrawingOnGoto: function(id) {
+        this._clearTo();
+        this._emitClearToEvent();
+
+        if (document.querySelector('.reveal')) {
+          if (this.drawings[id]) {
+            this._loadImage(this.drawings[id], id);
+            this._emitLoadImageEvent(this.drawings[id]);
+          }
+        }
+        else {
+          setTimeout(function() {
+            if (this.drawings[id]) {
+              this._loadImage(this.drawings[id], id);
+              this._emitLoadImageEvent(this.drawings[id]);
+            }
+          }.bind(this), 1000);
+        }
+
+        this.lastStep = id;
       },
 
       _downloadCurrentCanvas: function() {
