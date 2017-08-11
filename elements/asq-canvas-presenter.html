@@ -124,7 +124,6 @@ Example:
         this.activeCanvas = false;
         this.activeTool = "pen";
 
-        // add the additional drawing slides if reveal is used
         this._emitGetSlidesEvent();
       },
 
@@ -173,6 +172,7 @@ Example:
       },
 
       _onMousedown: function(e) {
+        var fragment = false;
         var mouseX = e.pageX - this.offsetLeft;
         var mouseY = e.pageY - this.offsetTop;
         this.drawings[this.lastStep] = this.drawings[this.lastStep] || [];
@@ -184,11 +184,17 @@ Example:
         this.lastX = mouseX;
         this.lastY = mouseY;
 
-        var currentSlide = document.querySelector('.present').getBoundingClientRect();
+        var presentSlide = document.querySelector('.present');
+
+        if (document.querySelector('.reveal') && presentSlide.getBoundingClientRect().height == 0) {
+          currentSlide = document.querySelector('.present').children[0].getBoundingClientRect();
+          fragment = true;
+        }
+        else currentSlide = document.querySelector('.present').getBoundingClientRect();
 
         // get the width and height of the current slide
         this.pSlideWidth = currentSlide.width;
-        this.pSlideHeight = document.body.offsetHeight - currentSlide.top - (document.body.offsetHeight - currentSlide.bottom);
+        this.pSlideHeight = (fragment)? currentSlide.height : document.body.offsetHeight - currentSlide.top - (document.body.offsetHeight - currentSlide.bottom);
 
         // get the midpoint of the current slide
         this.pSMX = currentSlide.left + this.pSlideWidth/2;

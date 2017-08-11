@@ -63,11 +63,19 @@ Example:
         switch (d.command){
           case "drawOnCanvas":
 
-            var currentSlide = document.querySelector('.present').getBoundingClientRect();
+          var fragment = false;
+
+          var presentSlide = document.querySelector('.present');
+
+            if (document.querySelector('.reveal') && presentSlide.getBoundingClientRect().height == 0) {
+              currentSlide = document.querySelector('.present').children[0].getBoundingClientRect();
+              fragment = true;
+            }
+            else currentSlide = document.querySelector('.present').getBoundingClientRect();
 
             // get the width and height of the viewer's current slide
             var vSlideWidth = currentSlide.width;
-            var vSlideHeight = document.body.offsetHeight - currentSlide.top - (document.body.offsetHeight - currentSlide.bottom);
+            var vSlideHeight = (fragment)? currentSlide.height : document.body.offsetHeight - currentSlide.top - (document.body.offsetHeight - currentSlide.bottom);
 
             // get the midpoint of the viewer's current slide
             var vSMX = currentSlide.left + vSlideWidth/2;

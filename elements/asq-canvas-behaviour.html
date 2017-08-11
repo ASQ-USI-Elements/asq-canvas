@@ -90,12 +90,22 @@
     },
 
     _loadImage: function(data, slideId) {
-      if (slideId) var currentSlide = document.getElementById(slideId).getBoundingClientRect();
-      else var currentSlide = document.querySelector('.present').getBoundingClientRect();
+      var fragment = false;
+      var currentSlide;
+      var presentSlide = document.querySelector('.present');
+      if (presentSlide) {
+        if (document.querySelector('.reveal') && presentSlide.getBoundingClientRect().height == 0) {
+          currentSlide = document.querySelector('.present').children[0].getBoundingClientRect();
+          fragment = true;
+        }
+        else currentSlide = document.querySelector('.present').getBoundingClientRect();
+      }
+      else if (slideId ) currentSlide = document.getElementById(slideId).getBoundingClientRect();
+      else return;
 
       // get the width and height of the user's current slide
       var cSlideWidth = currentSlide.width;
-      var cSlideHeight = document.body.offsetHeight - currentSlide.top - (document.body.offsetHeight - currentSlide.bottom);
+      var cSlideHeight = (fragment)? currentSlide.height : document.body.offsetHeight - currentSlide.top - (document.body.offsetHeight - currentSlide.bottom);
 
       // get the midpoint of the user's current slide
       var cSMX = currentSlide.left + cSlideWidth/2;
@@ -129,6 +139,7 @@
     },
 
     _resizeCanvas: function () {
+      var timeOutSet = false;
       var resizeAnimation = setInterval(function() {
         this._clearTo();
         this.$.canvas.width = this.offsetWidth;
@@ -140,11 +151,15 @@
         else {
           if (this.lastStep && this.drawings[this.lastStep]) this._loadImage(this.drawings[this.lastStep], this.lastStep);
         }
-      }.bind(this), 1);
 
-      setTimeout(function() {
-        clearInterval(resizeAnimation);
-      }, 3000);
+        if (!timeOutSet) {
+            setTimeout(function() {
+            clearInterval(resizeAnimation);
+          }, 3000);
+            timeOutSet = true;
+        }
+
+      }.bind(this), 100);
 
     },
 
