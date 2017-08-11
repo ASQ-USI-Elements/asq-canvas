@@ -114,16 +114,13 @@ Example:
         this.$.penBtn.addEventListener('click', this._draw.bind(this));
         this.$.eraseBtn.addEventListener('click', this._erase.bind(this));
 
-
         // change the paper swatch picker icon
         var paletteIcon = this.$.colorBtn.shadowRoot.querySelector('#iconButton');
         paletteIcon.icon = "image:palette";
       },
 
       attached: function() {
-        this.activeCanvas = false;
-        this.activeTool = "pen";
-
+        this._setDrawingProperties({ activeCanvas : false, activeTool : "pen" });
         this._emitGetSlidesEvent();
       },
 
@@ -139,10 +136,10 @@ Example:
       },
 
       _onAsqPluginCustomData: function(evt) {
-        if (evt.data.command == 'storeDrawingsLocally' && evt.data.pluginCustomData) {
-            this.drawings = evt.data.pluginCustomData.drawings || {};
+        if (evt.data.command == 'storeDrawingsLocally') {
+          this.gotDrawings = true;
+          if (evt.data.pluginCustomData) this.drawings = evt.data.pluginCustomData.drawings || {};
         }
-        if (evt.data.command == 'storeDrawingsLocally') this.gotDrawings = true;
       },
 
       // draw the current drawing and retrieve the extra slides if the viewer connects later
@@ -164,99 +161,40 @@ Example:
 
         if (!this.gotDrawings) await this._sleep(1000);
 
+        this.drawings[this.lastStep] = this.drawings[this.lastStep] || [];
+
+        this.lastStep = id;
+
+        await this._setSlideProperties();
+
         this._changeDrawingOnGoto(id);
       },
 
-      _sleep: function (ms) {
-        return new Promise(resolve => setTimeout(resolve, ms));
-      },
+      _onMousedown: function(evt) {
+        this._setDrawingProperties({ updateLastXY : true, pageX : evt.pageX, pageY : evt.pageY, isDrawing : true });
+        if (this.activeTool == "pen") {
+          this.drawingColor = this.$.colorBtn.color;
+          this.lineWidth = this.$.lineWidthSlider.value;
+        }
 
-      _onMousedown: function(e) {
-        var fragment = false;
-        var mouseX = e.pageX - this.offsetLeft;
-        var mouseY = e.pageY - this.offsetTop;
         this.drawings[this.lastStep] = this.drawings[this.lastStep] || [];
 
-        this.drawingColor = this.$.colorBtn.color;
-        this.lineWidth = this.$.lineWidthSlider.value;
-
-        this.isDrawing = true;
-        this.lastX = mouseX;
-        this.lastY = mouseY;
-
-        var presentSlide = document.querySelector('.present');
-
-        if (document.querySelector('.reveal') && presentSlide.getBoundingClientRect().height == 0) {
-          currentSlide = document.querySelector('.present').children[0].getBoundingClientRect();
-          fragment = true;
-        }
-        else currentSlide = document.querySelector('.present').getBoundingClientRect();
-
-        // get the width and height of the current slide
-        this.pSlideWidth = currentSlide.width;
-        this.pSlideHeight = (fragment)? currentSlide.height : document.body.offsetHeight - currentSlide.top - (document.body.offsetHeight - currentSlide.bottom);
-
-        // get the midpoint of the current slide
-        this.pSMX = currentSlide.left + this.pSlideWidth/2;
-        this.pSMY = currentSlide.top + this.pSlideHeight/2;
-
-        if (this.activeTool == "pen") {
-          this.ctx.globalCompositeOperation = 'source-over';
-        }
-        else {
-          this.drawingColor = 'rgba(0,0,0,1)';
-          this.ctx.globalCompositeOperation = 'destination-out';
-        }
-
-        this.ctx.fillStyle = this.drawingColor;
-
-        this._drawCircle(mouseX, mouseY, this.lineWidth);
-        this._emitFillEvent("circle", mouseX, mouseY)
-        this.drawings[this.lastStep].push({
-          form: "circle",
-          mouseX: mouseX,
-          mouseY: mouseY,
-          drawingColor: this.drawingColor,
-          lineWidth: this.lineWidth,
-          pSlideWidth: this.pSlideWidth,
-          pSlideHeight: this.pSlideHeight,
-          pSMX: this.pSMX,
-          pSMY: this.pSMY,
-          gCO: this.ctx.globalCompositeOperation
-        });
+        this._drawCircle(this.mouseX, this.mouseY, this.lineWidth);
+        this._emitFillEvent('circle')
+        this._pushLastDrawing('circle');
       },
 
       // bind mouse events
       _onMousemove: function(e) {
-        this.ctx.strokeStyle = this.drawingColor;
+        if (!this.isDrawing) return;
+        this._setDrawingProperties({ pageX : e.pageX, pageY : e.pageY });
 
-        if (!this.isDrawing) {
-          return;
-        }
-        var mouseX = e.pageX - this.offsetLeft;
-        var mouseY = e.pageY - this.offsetTop;
+        this._drawLine(this.mouseX, this.mouseY, this.lastX, this.lastY, this.lineWidth);
+        this._emitFillEvent("line")
 
-        this._drawLine(mouseX, mouseY, this.lastX, this.lastY, this.lineWidth);
-        this._emitFillEvent("line", mouseX, mouseY)
+        this._pushLastDrawing('line');
 
-        this.drawings[this.lastStep].push({
-          form: "line",
-          mouseX: mouseX,
-          mouseY: mouseY,
-          lastX: this.lastX,
-          lastY: this.lastY,
-          drawingColor: this.drawingColor,
-          lineWidth: this.lineWidth,
-          pSlideWidth: this.pSlideWidth,
-          pSlideHeight: this.pSlideHeight,
-          pSMX: this.pSMX,
-          pSMY: this.pSMY,
-          gCO: this.ctx.globalCompositeOperation
-        });
-
-        this.lastX = mouseX;
-        this.lastY = mouseY;
-
+        this._setDrawingProperties({ updateLastXY : true });
       },
 
       _onMouseup :function(e) {
@@ -274,7 +212,7 @@ Example:
         });
       },
 
-      _emitFillEvent: function(form, mouseX, mouseY){
+      _emitFillEvent: function(form){
         if (!this.eventBus) return;
 
         this.eventBus.emit('asq-plugin', {
@@ -282,16 +220,16 @@ Example:
           data: {
             command: "drawOnCanvas",
             form: form,
-            mouseX: mouseX,
-            mouseY: mouseY,
+            mouseX: this.mouseX,
+            mouseY: this.mouseY,
             lastX: this.lastX,
             lastY: this.lastY,
             drawingColor: this.drawingColor,
             lineWidth: this.lineWidth,
-            pSlideWidth: this.pSlideWidth,
-            pSlideHeight: this.pSlideHeight,
-            pSMX: this.pSMX,
-            pSMY: this.pSMY
+            slideWidth: this.slideWidth,
+            slideHeight: this.slideHeight,
+            sMX: this.sMX,
+            sMY: this.sMY
           }
         });
       },
@@ -324,7 +262,6 @@ Example:
           data: {
             command: "loadImage",
             data: data,
-            slideId: this.lastStep
           }
         });
       },
@@ -342,7 +279,6 @@ Example:
 
       _addSlide: function(atEnd) {
         var addedSlideIndex, slideId, prevX;
-        var atLast = false;
 
         if (!atEnd) { // insert after current slide
           var currentSlide = document.querySelector('section.present');
@@ -356,7 +292,7 @@ Example:
         }
 
         slideId = "s" + this._idGenerator();
-        prevX = document.querySelector('section.present').dataset.x;
+        prevX = currentSlide.dataset.x;
 
         if (!this.eventBus) return;
         this.eventBus.emit('asq-plugin', {
@@ -386,20 +322,18 @@ Example:
 
         if (document.querySelector('.reveal')) {
           if (this.drawings[id]) {
-            this._loadImage(this.drawings[id], id);
+            this._loadImage(this.drawings[id]);
             this._emitLoadImageEvent(this.drawings[id]);
           }
         }
         else {
           setTimeout(function() {
             if (this.drawings[id]) {
-              this._loadImage(this.drawings[id], id);
+              this._loadImage(this.drawings[id]);
               this._emitLoadImageEvent(this.drawings[id]);
             }
           }.bind(this), 1000);
         }
-
-        this.lastStep = id;
       },
 
       _downloadCurrentCanvas: function() {
@@ -415,12 +349,14 @@ Example:
         this.activeTool = "pen";
         evt.target.classList.add('active-tool');
         if (this.$.eraseBtn.classList.contains('active-tool')) this.$.eraseBtn.classList.remove('active-tool');
+        this._setDrawingProperties({ drawingColor : this.$.colorBtn.color, gCO : 'source-over'});
       },
 
       _erase: function(evt) {
         this.activeTool = "eraser";
         evt.target.classList.add('active-tool');
         if (this.$.penBtn.classList.contains('active-tool')) this.$.penBtn.classList.remove('active-tool');
+        this._setDrawingProperties({ drawingColor : 'rgba(0,0,0,1)', gCO : 'destination-out'});
       },
 
       _indexOfSlide: function(slide) {
@@ -435,9 +371,9 @@ Example:
 
       _idGenerator: function() {
         var S4 = function() {
-          return (((1+Math.random())*0x10000)|0).toString(16).substring(1);
+          return (((1 + Math.random()) * 0x10000)| 0).toString(16).substring(1);
         };
-        return (S4()+S4()+"-"+S4()+"-"+S4()+"-"+S4()+"-"+S4()+S4()+S4());
+        return (S4() + S4() + "-" + S4()+ "-" + S4() + "-" + S4() + "-" + S4() + S4() + S4());
       },
 
       _openAddSlideDialog: function() {
@@ -448,10 +384,25 @@ Example:
         this.$.changeLineWidthDialog.open();
       },
 
-      _removeSlide: function() {
-        var currentSlide = document.querySelector('section.present');
+      _pushLastDrawing: function(form) {
+        this.drawings[this.lastStep].push({
+          form: form,
+          mouseX: this.mouseX,
+          mouseY: this.mouseY,
+          lastX: this.lastX,
+          lastY: this.lastY,
+          drawingColor: this.drawingColor,
+          lineWidth: this.lineWidth,
+          slideWidth: this.slideWidth,
+          slideHeight: this.slideHeight,
+          sMX: this.sMX,
+          sMY: this.sMY,
+          gCO: this.ctx.globalCompositeOperation
+        });
+      },
 
-        if (currentSlide.innerHTML == '') {
+      _removeSlide: function() {
+        if (this.currentSlide.innerHTML == '') {
           if (!this.eventBus) return;
           this.eventBus.emit('asq-plugin', {
             type: 'asq-canvas',
@@ -473,13 +424,13 @@ Example:
             button.classList.remove('drawingMenu');
             button.classList.add('activeMenu');
           });
+          this.$.penBtn.click();
         }
         else {
           evt.target.icon = "image:brush";
           this.isInteractive = false;
           evt.target.style.pointerEvents = "auto";
           this.activeCanvas = !this.activeCanvas;
-
           this.$.slideUtils.className = "";
           Polymer.dom(this.root).querySelectorAll('.activeMenu').forEach(function(button) {
             button.classList.remove('activeMenu');

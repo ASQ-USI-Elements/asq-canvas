@@ -38,6 +38,10 @@ Example:
       behaviors: [ASQ.asqCanvasElementBehavior],
 
       properties: {
+
+        /**
+         * The drawing of the current slide.
+         */
         lastDrawing: {
           type: Array,
           value: [],
@@ -55,64 +59,39 @@ Example:
         eventBus.on('asq-plugin', this._onAsqPlugin.bind(this));
       },
 
-      _onAsqPlugin: function(evt){
+      _onAsqPlugin: async function(evt){
         if(evt.type !== "asq-canvas") return;
 
         var d = evt.data;
 
         switch (d.command){
           case "drawOnCanvas":
+            if (!d.form) return;
 
-          var fragment = false;
+            var x1 = this._computeCoordinate(d.mouseX, d.slideWidth, this.slideWidth, d.sMX, this.sMX);
+            var y1 = this._computeCoordinate(d.mouseY, d.slideHeight, this.slideHeight, d.sMY, this.sMY);
+            var x2 = this._computeCoordinate(d.lastX, d.slideWidth, this.slideWidth, d.sMX, this.sMX);
+            var y2 = this._computeCoordinate(d.lastY, d.slideHeight, this.slideHeight, d.sMY, this.sMY);
 
-          var presentSlide = document.querySelector('.present');
+            this._setDrawingProperties({ drawingColor : d.drawingColor, lineWidth : this._getLineWidth(d.lineWidth, d.slideWidth, d.slideHeight, this.slideWidth, this.slideHeight),
+              gCO : d.gCO});
 
-            if (document.querySelector('.reveal') && presentSlide.getBoundingClientRect().height == 0) {
-              currentSlide = document.querySelector('.present').children[0].getBoundingClientRect();
-              fragment = true;
-            }
-            else currentSlide = document.querySelector('.present').getBoundingClientRect();
-
-            // get the width and height of the viewer's current slide
-            var vSlideWidth = currentSlide.width;
-            var vSlideHeight = (fragment)? currentSlide.height : document.body.offsetHeight - currentSlide.top - (document.body.offsetHeight - currentSlide.bottom);
-
-            // get the midpoint of the viewer's current slide
-            var vSMX = currentSlide.left + vSlideWidth/2;
-            var vSMY = currentSlide.top + vSlideHeight/2;
-
-            var x1 = this._computeCoordinate(d.mouseX, d.pSlideWidth, vSlideWidth, d.pSMX, vSMX);
-            var y1 = this._computeCoordinate(d.mouseY, d.pSlideHeight, vSlideHeight, d.pSMY, vSMY);
-            var x2 = this._computeCoordinate(d.lastX, d.pSlideWidth, vSlideWidth, d.pSMX, vSMX);
-            var y2 = this._computeCoordinate(d.lastY, d.pSlideHeight, vSlideHeight, d.pSMY, vSMY);
-
-            // calculate the lineWidth for the viewer
-            var lineWidth = d.lineWidth * (vSlideWidth * vSlideHeight)/(d.pSlideWidth * d.pSlideHeight)
-
-            // set the drawing properties
-            this.drawingColor = d.drawingColor;
-            this.lineWidth = lineWidth;
-            this.ctx.fillStyle = this.drawingColor;
-            this.ctx.strokeStyle = this.drawingColor;
-            this.ctx.globalCompositeOperation = d.gCO;
             this.lastDrawing.push(d);
 
-            if (d.form == "circle") {
-              this._drawCircle(x1, y1, this.lineWidth);
-            }
-            else if (d.form == "line") {
-              this._drawLine(x1, y1, x2, y2, this.lineWidth);
-            }
+            if (d.form == "circle") this._drawCircle(x1, y1, this.lineWidth);
+            else this._drawLine(x1, y1, x2, y2, this.lineWidth);
+
             break;
+
           case "clearTo":
             this._clearTo();;
             break;
 
           case "loadImage":
+            await this._setSlideProperties();
             if (d.data) {
               this.lastDrawing = d.data;
-              this.currentSlide = d.slideId;
-              this._loadImage(this.lastDrawing, d.slideId);
+              this._loadImage(this.lastDrawing);
             }
             break;
         }
