@@ -29,15 +29,18 @@
     attached: async function() {
       this.ctx = this.$.canvas.getContext('2d');
       this._setDrawingProperties({ lastX : 0, lastY: 0 });
-      await this._setSlideProperties();
 
-      window.addEventListener('resize', this._resizeCanvas.bind(this), false);
+      if (!this.printing) {
+        await this._setSlideProperties();
 
-      if (this.initialResize) {
-        setTimeout(this._resizeCanvas, this.initialResize);
-      }
-      else {
-        setTimeout(this._resizeCanvas.bind(this), 1000);
+        window.addEventListener('resize', this._resizeCanvas.bind(this), false);
+
+        if (this.initialResize) {
+          setTimeout(this._resizeCanvas, this.initialResize);
+        }
+        else {
+          setTimeout(this._resizeCanvas.bind(this), 1000);
+        }
       }
     },
 
@@ -122,31 +125,33 @@
       }.bind(this));
     },
 
-    _resizeCanvas: async function () {
-      var timeOutSet = false;
-      var resizeAnimation = setInterval(async function() {
-        this._clearTo();
-        this.$.canvas.width = this.offsetWidth;
-        this.$.canvas.height = this.offsetHeight;
+    _resizeCanvas: async function (id) {
+      if (!this.printing) {
+        var timeOutSet = false;
+        var resizeAnimation = setInterval(async function() {
+          if (!this.printing) this._clearTo();
+          this.$.canvas.width = this.offsetWidth;
+          this.$.canvas.height = this.offsetHeight;
 
-        await this._setSlideProperties();
+          await this._setSlideProperties();
 
-        if (this.role == 'viewer') {
-          if (this.lastDrawing) this._loadImage(this.lastDrawing);
-        }
-        else {
-          if (this.lastStep && this.drawings[this.lastStep]) this._loadImage(this.drawings[this.lastStep]);
-        }
+          if (this.role == 'viewer') {
+            if (this.lastDrawing) this._loadImage(this.lastDrawing);
+          }
+          else if (this.printing && id) this._loadImage(this.drawings[id]);
+          else {
+            if (this.lastStep && this.drawings[this.lastStep]) this._loadImage(this.drawings[this.lastStep]);
+          }
 
-        if (!timeOutSet) {
-            setTimeout(function() {
-            clearInterval(resizeAnimation);
-          }, 3000);
-            timeOutSet = true;
-        }
+          if (!timeOutSet) {
+              setTimeout(function() {
+              clearInterval(resizeAnimation);
+            }, 3000);
+              timeOutSet = true;
+          }
 
-      }.bind(this), 100);
-
+        }.bind(this), 100);
+      }
     },
 
     _setDrawingProperties: function(drawProps) {
@@ -165,19 +170,27 @@
       this.ctx.strokeStyle = this.drawingColor;
     },
 
-    _setSlideProperties: async function() {
-      if (!document.querySelector('.present')) await this._sleep(1000);
-
-      // we are in a fragment of Reveal, the height has to be calculated differently here
-      if (document.querySelector('.reveal') && document.querySelector('.present').getBoundingClientRect().height == 0) {
-        this.currentSlide = document.querySelector('.present').children[0].getBoundingClientRect();
+    _setSlideProperties: async function(id) {
+      // id is given, get the slide properties for the printing view
+      if (id) {
+        if (!document.querySelector('#' + id)) await this._sleep(1000);
+        this.currentSlide = document.querySelector('#' + id).getBoundingClientRect();
         this.slideHeight = this.currentSlide.height;
       }
-      // a normal slide
       else {
-        this.currentSlide = document.querySelector('.present').getBoundingClientRect();
-        this.slideHeight = document.body.offsetHeight - this.currentSlide.top
-        - (document.body.offsetHeight - this.currentSlide.bottom);
+        if (!document.querySelector('.present')) await this._sleep(1000);
+
+        // we are in a fragment of Reveal, the height has to be calculated differently here
+        if (document.querySelector('.reveal') && document.querySelector('.present').getBoundingClientRect().height == 0) {
+          this.currentSlide = document.querySelector('.present > .present').getBoundingClientRect();
+          this.slideHeight = this.currentSlide.height;
+        }
+        // a normal slide
+        else {
+          this.currentSlide = document.querySelector('.present').getBoundingClientRect();
+          this.slideHeight = document.body.offsetHeight - this.currentSlide.top
+          - (document.body.offsetHeight - this.currentSlide.bottom);
+        }
       }
 
       // get the width of the current slide

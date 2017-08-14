@@ -96,13 +96,12 @@ Example:
         },
 
         /**
-         * Flag to determine if we are printing or not.
+         * Indicates if the slides have been loaded
          */
-        printing: {
-           type: Boolean,
-           value: false,
-         },
-
+        slidesLoaded: {
+          type: Boolean,
+          value: false,
+        },
 
       },
 
@@ -128,9 +127,25 @@ Example:
         paletteIcon.icon = "image:palette";
       },
 
-      attached: function() {
+      attached: async function() {
+        if (window.location.search.match(/print-pdf/gi)) this.printing = true;
+
         this._setDrawingProperties({ activeCanvas : false, activeTool : "pen" });
         this._emitGetSlidesEvent();
+
+        if (this.printing) {
+          await this._sleep(1000);
+          this.$.canvas.width = document.body.offsetWidth;
+          this.$.canvas.height = document.querySelector('.reveal').offsetHeight;
+
+          this._emitGetDrawingsEvent();
+          if (!this.gotDrawings) await this._sleep(1000);
+
+          Object.getOwnPropertyNames(this.drawings).forEach(async function(slideId) {
+            this._setSlideProperties(slideId);
+            this._loadImage(this.drawings[slideId]);
+          }.bind(this));
+        }
       },
 
       _subscribeToEvents: function(eventBus) {
