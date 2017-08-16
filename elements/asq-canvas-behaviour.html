@@ -30,6 +30,9 @@
       this.ctx = this.$.canvas.getContext('2d');
       this._setDrawingProperties({ lastX : 0, lastY: 0 });
 
+      if (window.location.search.match(/print-pdf/gi)) this.printing = true;
+
+
       if (!this.printing) {
         await this._setSlideProperties();
 
@@ -98,12 +101,12 @@
     },
 
     _loadImage: function(data) {
-      var prevColor = this.drawingColor;
-      var prevGCO = this.ctx.globalCompositeOperation;
+      var prevColor = this.drawingColor || '#000';
+      var prevGCO = this.ctx.globalCompositeOperation || 'source-over';
 
       data.forEach(function(drawStep) {
         var lineWidth = this._getLineWidth(drawStep.lineWidth, drawStep.slideWidth, drawStep.slideHeight, this.slideWidth, this.slideHeight);
-        this._setDrawingProperties( { gCo : drawStep.gCO, drawingColor : drawStep.drawingColor });
+        this._setDrawingProperties( { gCO : drawStep.gCO, drawingColor : drawStep.drawingColor });
 
         var x1 = this._computeCoordinate(drawStep.mouseX, drawStep.slideWidth, this.slideWidth, drawStep.sMX, this.sMX);
         var y1 = this._computeCoordinate(drawStep.mouseY, drawStep.slideHeight, this.slideHeight, drawStep.sMY, this.sMY);
@@ -175,7 +178,8 @@
       if (id) {
         if (!document.querySelector('#' + id)) await this._sleep(1000);
         this.currentSlide = document.querySelector('#' + id).getBoundingClientRect();
-        this.slideHeight = this.currentSlide.height;
+        this.slideHeight = document.body.offsetHeight - this.currentSlide.top
+        - (document.body.offsetHeight - this.currentSlide.bottom);
       }
       else {
         if (!document.querySelector('.present')) await this._sleep(1000);
@@ -198,6 +202,7 @@
 
       // get the midpoint of the current slide
       this.sMX = this.currentSlide.left + this.slideWidth/2;
+      if (this.printing) this.sMX -= document.body.getBoundingClientRect().left;
       this.sMY = this.currentSlide.top + this.slideHeight/2;
 
       return new Promise(resolve => resolve());

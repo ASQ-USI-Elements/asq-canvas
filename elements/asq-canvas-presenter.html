@@ -135,7 +135,7 @@ Example:
 
         if (this.printing) {
           await this._sleep(1000);
-          this.$.canvas.width = document.body.offsetWidth;
+          this.$.canvas.width = this.$.canvas.offsetWidth;
           this.$.canvas.height = document.querySelector('.reveal').offsetHeight;
 
           this._emitGetDrawingsEvent();
