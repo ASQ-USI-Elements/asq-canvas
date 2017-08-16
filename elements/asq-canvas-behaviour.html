@@ -191,6 +191,7 @@
         }
         // a normal slide
         else {
+          if (!document.querySelector('.present')) await this._sleep(1000);
           this.currentSlide = document.querySelector('.present').getBoundingClientRect();
           this.slideHeight = document.body.offsetHeight - this.currentSlide.top
           - (document.body.offsetHeight - this.currentSlide.bottom);
