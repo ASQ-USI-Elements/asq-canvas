@@ -103,9 +103,21 @@ Example:
           value: false,
         },
 
+        /**
+         * Indicates if the drawings have already been printed in the printing version
+         */
+        printed: {
+            type: Boolean,
+            value: false,
+        },
+
+        printChild: {
+          type: Boolean,
+          value: false,
+        }
       },
 
-      created: function(){
+      created: function() {
         document.addEventListener('asq-ready', function(evt){
           try {
           this._subscribeToEvents(this.eventBus);
@@ -131,20 +143,46 @@ Example:
         if (window.location.search.match(/print-pdf/gi)) this.printing = true;
 
         this._setDrawingProperties({ activeCanvas : false, activeTool : "pen" });
-        this._emitGetSlidesEvent();
+        if (!this.printChild) this._emitGetSlidesEvent();
 
-        if (this.printing) {
+        if (this.printing && !this.printChild) {
           await this._sleep(1000);
-          this.$.canvas.width = this.$.canvas.offsetWidth;
-          this.$.canvas.height = document.querySelector('.reveal').offsetHeight;
+          // this.$.canvas.width = this.$.canvas.offsetWidth;
+          // this.$.canvas.height = document.querySelector('.reveal').offsetHeight;
 
           this._emitGetDrawingsEvent();
           if (!this.gotDrawings) await this._sleep(1000);
 
-          Object.getOwnPropertyNames(this.drawings).forEach(async function(slideId) {
-            this._setSlideProperties(slideId);
-            this._loadImage(this.drawings[slideId]);
-          }.bind(this));
+          if (!this.printed) {
+            Object.getOwnPropertyNames(this.drawings).forEach(async function(slideId) {
+              var slide = document.getElementById(slideId);
+              var canvas = document.createElement('asq-canvas');
+              canvas.role = 'presenter';
+              canvas.printChild = true;
+              canvas.style.position = 'absolute';
+              slide.appendChild(canvas);
+              if (!document.querySelector('#' + slideId + ' asq-canvas::shadow')) await this._sleep(1000);
+              var presenterCanvas = document.querySelector('#' + slideId + ' asq-canvas').shadowRoot.querySelector('asq-canvas-presenter');
+              presenterCanvas.$.canvas.width = window.outerWidth;
+              presenterCanvas.$.canvas.style.width = window.outerWidth;
+              presenterCanvas.$.canvas.style.height = window.outerHeight;
+              presenterCanvas.$.canvas.style.zIndex = 90;
+              presenterCanvas.$.canvas.height = window.outerHeight;
+              presenterCanvas.$.canvas.style.position = 'absolute';
+              console.log(presenterCanvas.$.canvas);
+              presenterCanvas._setSlideProperties(slideId);
+              presenterCanvas._loadImage(this.drawings[slideId]);
+              // this._setSlideProperties(slideId);
+
+              // this._loadImage(this.drawings[slideId]);
+            }.bind(this));
+
+            this.printed = true;
+          }
+
+          // var canvas = document.createElement('asq-canvas');
+          // canvas.role = 'presenter';
+          // document.getElementById('asq').appendChild(canvas);
         }
       },
 
