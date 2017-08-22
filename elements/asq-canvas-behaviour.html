@@ -32,7 +32,6 @@
 
       if (window.location.search.match(/print-pdf/gi)) this.printing = true;
 
-
       if (!this.printing) {
         await this._setSlideProperties();
 
@@ -203,8 +202,10 @@
 
       // get the midpoint of the current slide
       this.sMX = this.currentSlide.left + this.slideWidth/2;
-      if (this.printing) this.sMX -= document.body.getBoundingClientRect().left;
       this.sMY = this.currentSlide.top + this.slideHeight/2;
+      if (this.printing) this.sMX = this.slideWidth/2;
+      if (this.printing) this.sMY = this.currentSlide.top - document.getElementById(id + 'Div').offsetTop + this.slideHeight/2;
+
 
       return new Promise(resolve => resolve());
     },

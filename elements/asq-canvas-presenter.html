@@ -147,42 +147,65 @@ Example:
 
         if (this.printing && !this.printChild) {
           await this._sleep(1000);
-          // this.$.canvas.width = this.$.canvas.offsetWidth;
-          // this.$.canvas.height = document.querySelector('.reveal').offsetHeight;
+
 
           this._emitGetDrawingsEvent();
           if (!this.gotDrawings) await this._sleep(1000);
 
-          if (!this.printed) {
-            Object.getOwnPropertyNames(this.drawings).forEach(async function(slideId) {
-              var slide = document.getElementById(slideId);
+          if (!window.printed) {
+            window.printed = true;
+
+            var slides = document.querySelector('.slides');
+            var slideArray = [];
+            var toRemove = [];
+
+            [].forEach.call(slides.children, function(section) {
+              if (section.id) {
+                var slide = document.getElementById(section.id);
+                slideArray.push(slide);
+              }
+              else {
+                [].forEach.call(section.children, function(sectionChild) {
+                  if (sectionChild.id && sectionChild.nodeName == 'SECTION') {
+                    var slide = document.getElementById(sectionChild.id);
+                    slideArray.push(slide);
+                  }
+                });
+                toRemove.push(section);
+              }
+            });
+
+            toRemove.forEach(function(section) {
+              section.parentNode.removeChild(section);
+            });
+
+            slideArray.forEach(function(slide) {
+              var slideDiv = document.createElement('DIV');
+              slideDiv.id = slide.id + 'Div';
+
               var canvas = document.createElement('asq-canvas');
               canvas.role = 'presenter';
               canvas.printChild = true;
-              canvas.style.position = 'absolute';
-              slide.appendChild(canvas);
-              if (!document.querySelector('#' + slideId + ' asq-canvas::shadow')) await this._sleep(1000);
-              var presenterCanvas = document.querySelector('#' + slideId + ' asq-canvas').shadowRoot.querySelector('asq-canvas-presenter');
-              presenterCanvas.$.canvas.width = window.outerWidth;
-              presenterCanvas.$.canvas.style.width = window.outerWidth;
-              presenterCanvas.$.canvas.style.height = window.outerHeight;
-              presenterCanvas.$.canvas.style.zIndex = 90;
-              presenterCanvas.$.canvas.height = window.outerHeight;
-              presenterCanvas.$.canvas.style.position = 'absolute';
-              console.log(presenterCanvas.$.canvas);
+
+              slideDiv.appendChild(slide);
+              slideDiv.appendChild(canvas);
+
+              slides.appendChild(slideDiv);
+              slideDiv.className = 'slideDiv';
+              slideDiv.style.height = document.body.offsetHeight + 'px';
+            });
+
+            Object.getOwnPropertyNames(this.drawings).forEach(async function(slideId) {
+              if (!document.querySelector('#' + slideId + 'Div' + ' asq-canvas::shadow')) await this._sleep(3000);
+              var presenterCanvas = document.querySelector('#' + slideId + 'Div' + ' asq-canvas').shadowRoot.querySelector('asq-canvas-presenter');
               presenterCanvas._setSlideProperties(slideId);
+              presenterCanvas.drawingTool = 'pen';
+              presenterCanvas.$.canvas.height = document.querySelector('#' + slideId + 'Div' + ' asq-canvas').offsetHeight;
+              presenterCanvas.$.canvas.width = document.querySelector('#' + slideId + 'Div' + ' asq-canvas').offsetWidth;
+
               presenterCanvas._loadImage(this.drawings[slideId]);
-              // this._setSlideProperties(slideId);
-
-              // this._loadImage(this.drawings[slideId]);
             }.bind(this));
-
-            this.printed = true;
           }
-
-          // var canvas = document.createElement('asq-canvas');
-          // canvas.role = 'presenter';
-          // document.getElementById('asq').appendChild(canvas);
         }
       },
 
@@ -237,8 +260,8 @@ Example:
       _onMousedown: function(evt) {
         this._setDrawingProperties({ updateLastXY : true, pageX : evt.pageX, pageY : evt.pageY, isDrawing : true });
         if (this.activeTool == "pen") {
-          this.drawingColor = this.$.colorBtn.color;
-          this.lineWidth = this.$.lineWidthSlider.value;
+          this.drawingColor = this.$.colorBtn.color || this.drawingColor;
+          this.lineWidth = this.$.lineWidthSlider.value || this.lineWidth;
         }
 
         this.drawings[this.lastStep] = this.drawings[this.lastStep] || [];
