@@ -176,35 +176,35 @@
       // id is given, get the slide properties for the printing view
       if (id) {
         if (!document.querySelector('#' + id)) await this._sleep(1000);
-        this.currentSlide = document.querySelector('#' + id).getBoundingClientRect();
-        this.slideHeight = document.body.offsetHeight - this.currentSlide.top
-        - (document.body.offsetHeight - this.currentSlide.bottom);
+        this.currentSlide = document.querySelector('#' + id);
+        this.slideHeight = document.body.offsetHeight - this.currentSlide.getBoundingClientRect().top
+        - (document.body.offsetHeight - this.currentSlide.getBoundingClientRect().bottom);
       }
       else {
         if (!document.querySelector('.present')) await this._sleep(1000);
 
         // we are in a fragment of Reveal, the height has to be calculated differently here
         if (document.querySelector('.reveal') && document.querySelector('.present').getBoundingClientRect().height == 0) {
-          this.currentSlide = document.querySelector('.present > .present').getBoundingClientRect();
-          this.slideHeight = this.currentSlide.height;
+          this.currentSlide = document.querySelector('.present > .present');
+          this.slideHeight = this.currentSlide.getBoundingClientRect().height;
         }
         // a normal slide
         else {
           if (!document.querySelector('.present')) await this._sleep(1000);
-          this.currentSlide = document.querySelector('.present').getBoundingClientRect();
-          this.slideHeight = document.body.offsetHeight - this.currentSlide.top
-          - (document.body.offsetHeight - this.currentSlide.bottom);
+          this.currentSlide = document.querySelector('.present');
+          this.slideHeight = document.body.offsetHeight - this.currentSlide.getBoundingClientRect().top
+          - (document.body.offsetHeight - this.currentSlide.getBoundingClientRect().bottom);
         }
       }
 
       // get the width of the current slide
-      this.slideWidth = this.currentSlide.width;
+      this.slideWidth = this.currentSlide.getBoundingClientRect().width;
 
       // get the midpoint of the current slide
-      this.sMX = this.currentSlide.left + this.slideWidth/2;
-      this.sMY = this.currentSlide.top + this.slideHeight/2;
+      this.sMX = this.currentSlide.getBoundingClientRect().left + this.slideWidth/2;
+      this.sMY = this.currentSlide.getBoundingClientRect().top + this.slideHeight/2;
       if (this.printing) this.sMX = this.slideWidth/2;
-      if (this.printing) this.sMY = this.currentSlide.top - document.getElementById(id + 'Div').offsetTop + this.slideHeight/2;
+      if (this.printing) this.sMY = this.currentSlide.getBoundingClientRect().top - document.getElementById(id + 'Div').offsetTop + this.slideHeight/2;
 
 
       return new Promise(resolve => resolve());
