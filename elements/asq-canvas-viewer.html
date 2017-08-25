@@ -59,7 +59,7 @@ Example:
         eventBus.on('asq-plugin', this._onAsqPlugin.bind(this));
       },
 
-      _onAsqPlugin: async function(evt){
+      _onAsqPlugin: function(evt){
         if(evt.type !== "asq-canvas") return;
 
         var d = evt.data;
@@ -90,7 +90,7 @@ Example:
             break;
 
           case "loadImage":
-            await this._setSlideProperties();
+            this._setSlideProperties();
             if (d.data) {
               this.lastDrawing = d.data;
               this._loadImage(this.lastDrawing);

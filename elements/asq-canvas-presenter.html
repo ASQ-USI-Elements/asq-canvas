@@ -199,74 +199,86 @@ Example:
         paletteIcon.icon = "image:palette";
       },
 
-      attached: async function() {
+      attached: function() {
         if (window.location.search.match(/print-pdf/gi)) this.printing = true;
 
+        if (document.readyState !== 'complete') {
+          window.addEventListener('load', function() {
+            this._presenterAttachedHandler();
+          }.bind(this));
+        }
+        else this._presenterAttachedHandler();
+      },
+
+      _presenterAttachedHandler: function() {
         this._setDrawingProperties({ activeCanvas : false, activeTool : "pen" });
         if (!this.printChild) this._emitGetSlidesEvent();
 
         if (this.printing && !this.printChild) {
-          await this._sleep(1000);
-
 
           this._emitGetDrawingsEvent();
-          if (!this.gotDrawings) await this._sleep(1000);
-
           if (!window.printed) {
-            window.printed = true;
-
-            var slides = document.querySelector('.slides');
-            var slideArray = [];
-            var toRemove = [];
-
-            [].forEach.call(slides.children, function(section) {
-              if (section.id) {
-                var slide = document.getElementById(section.id);
-                slideArray.push(slide);
-              }
-              else {
-                [].forEach.call(section.children, function(sectionChild) {
-                  if (sectionChild.id && sectionChild.nodeName == 'SECTION') {
-                    var slide = document.getElementById(sectionChild.id);
-                    slideArray.push(slide);
-                  }
-                });
-                toRemove.push(section);
-              }
-            });
-
-            toRemove.forEach(function(section) {
-              section.parentNode.removeChild(section);
-            });
-
-            slideArray.forEach(function(slide) {
-              var slideDiv = document.createElement('DIV');
-              slideDiv.id = slide.id + 'Div';
-
-              var canvas = document.createElement('asq-canvas');
-              canvas.role = 'presenter';
-              canvas.printChild = true;
-
-              slideDiv.appendChild(slide);
-              slideDiv.appendChild(canvas);
-
-              slides.appendChild(slideDiv);
-              slideDiv.className = 'slideDiv';
-              slideDiv.style.height = document.body.offsetHeight + 'px';
-            });
-
-            Object.getOwnPropertyNames(this.drawings).forEach(async function(slideId) {
-              if (!document.querySelector('#' + slideId + 'Div' + ' asq-canvas::shadow')) await this._sleep(3000);
-              var presenterCanvas = document.querySelector('#' + slideId + 'Div' + ' asq-canvas').shadowRoot.querySelector('asq-canvas-presenter');
-              presenterCanvas._setSlideProperties(slideId);
-              presenterCanvas.drawingTool = 'pen';
-              presenterCanvas.$.canvas.height = document.querySelector('#' + slideId + 'Div' + ' asq-canvas').offsetHeight;
-              presenterCanvas.$.canvas.width = document.querySelector('#' + slideId + 'Div' + ' asq-canvas').offsetWidth;
-
-              presenterCanvas._loadImage(this.drawings[slideId]);
-            }.bind(this));
+            if (!this.gotDrawings) {
+              this.$.canvas.addEventListener('gotDrawings', function() {
+                this._printHandler();
+              }.bind(this));
+            }
+            else this._printHandler();
           }
         }
+      },
+
+      _printHandler: function() {
+          window.printed = true;
+          var slides = document.querySelector('.slides');
+          var slideArray = [];
+          var toRemove = [];
+
+          [].forEach.call(slides.children, function(section) {
+            if (section.id) {
+              var slide = document.getElementById(section.id);
+              slideArray.push(slide);
+            }
+            else {
+              [].forEach.call(section.children, function(sectionChild) {
+                if (sectionChild.id && sectionChild.nodeName == 'SECTION') {
+                  var slide = document.getElementById(sectionChild.id);
+                  slideArray.push(slide);
+                }
+              });
+              toRemove.push(section);
+            }
+          });
+
+          toRemove.forEach(function(section) {
+            section.parentNode.removeChild(section);
+          });
+
+          slideArray.forEach(function(slide) {
+            var slideDiv = document.createElement('DIV');
+            slideDiv.id = slide.id + 'Div';
+
+            var canvas = document.createElement('asq-canvas');
+            canvas.role = 'presenter';
+            canvas.printChild = true;
+
+            slideDiv.appendChild(slide);
+            slideDiv.appendChild(canvas);
+
+            slides.appendChild(slideDiv);
+            slideDiv.className = 'slideDiv';
+            slideDiv.style.height = window.outerHeight + 'px';
+          });
+
+          Object.getOwnPropertyNames(this.drawings).forEach(function(slideId) {
+            var presenterCanvas = document.querySelector('#' + slideId + 'Div' + ' asq-canvas').shadowRoot.querySelector('asq-canvas-presenter');
+            presenterCanvas._setSlideProperties(slideId);
+            presenterCanvas.drawingTool = 'pen';
+            presenterCanvas.$.canvas.height = document.querySelector('#' + slideId + 'Div' + ' asq-canvas').offsetHeight;
+            presenterCanvas.$.canvas.width = document.querySelector('#' + slideId + 'Div' + ' asq-canvas').offsetWidth;
+
+            presenterCanvas._loadImage(this.drawings[slideId]);
+          }.bind(this));
       },
 
       _subscribeToEvents: function(eventBus) {
@@ -281,9 +293,11 @@ Example:
       },
 
       _onAsqPluginCustomData: function(evt) {
-        if (evt.data.command == 'storeDrawingsLocally') {
+        if (evt.data.command == 'storeDrawingsLocally' && evt.data.pluginCustomData) {
+          this.drawings = evt.data.pluginCustomData.drawings || {};
           this.gotDrawings = true;
-          if (evt.data.pluginCustomData) this.drawings = evt.data.pluginCustomData.drawings || {};
+          var event = new Event('gotDrawings');
+          this.$.canvas.dispatchEvent(event);
         }
       },
 
@@ -293,7 +307,20 @@ Example:
         this._emitGetSlidesEvent();
       },
 
-      _onGoto: async function(evt) {
+      _onGoto: function(evt) {
+        if (window.location.search.match(/print-pdf/gi)) this.printing = true;
+        if (!this.printing) {
+          // wait for all elements to be loaded
+          if (document.readyState !== 'complete') {
+            window.addEventListener('load', function(){
+              this._goToHandler(evt);
+            }.bind(this));
+          }
+          else this._goToHandler(evt)
+        }
+      },
+
+      _goToHandler: function(evt) {
         if (!this.printing) {
           var id = evt.data.step || evt.data.id;
           // we are at the beginning or resume the presentation
@@ -305,13 +332,11 @@ Example:
             this._emitGetDrawingsEvent();
           }
 
-          if (!this.gotDrawings) await this._sleep(1000);
-
           this.drawings[this.lastStep] = this.drawings[this.lastStep] || [];
 
           this.lastStep = id;
 
-          await this._setSlideProperties();
+          this._setSlideProperties();
 
           this._changeDrawingOnGoto(id);
         }
@@ -556,6 +581,7 @@ Example:
       },
 
       _removeSlide: function() {
+        delete this.drawings[this.currentSlide.id];
         if (this.currentSlide.innerHTML == '') {
           if (!this.eventBus) return;
           this.eventBus.emit('asq-plugin', {
@@ -563,6 +589,7 @@ Example:
             data: {
               command: 'removeSlide',
               id: this.currentSlide.id,
+              drawings: this.drawings
             }
           });
         }

@@ -26,14 +26,22 @@
 
     },
 
-    attached: async function() {
+    attached: function() {
+      if (document.readyState !== 'complete') {
+        window.addEventListener('load', function(){
+          this._attachedHandler();
+        }.bind(this));
+      }
+      else this._attachedHandler();
+    },
+
+    _attachedHandler: function() {
       this.ctx = this.$.canvas.getContext('2d');
       this._setDrawingProperties({ lastX : 0, lastY: 0 });
 
       if (window.location.search.match(/print-pdf/gi)) this.printing = true;
 
       if (!this.printing) {
-        await this._setSlideProperties();
 
         window.addEventListener('resize', this._resizeCanvas.bind(this), false);
 
@@ -130,15 +138,13 @@
       }.bind(this));
     },
 
-    _resizeCanvas: async function (id) {
+    _resizeCanvas: function (id) {
       if (!this.printing) {
         var timeOutSet = false;
-        var resizeAnimation = setInterval(async function() {
+        var resizeAnimation = setInterval(function() {
           if (!this.printing) this._clearTo();
           this.$.canvas.width = this.offsetWidth;
           this.$.canvas.height = this.offsetHeight;
-
-          await this._setSlideProperties();
 
           if (this.role == 'viewer') {
             if (this.lastDrawing) this._loadImage(this.lastDrawing);
@@ -175,16 +181,14 @@
       this.ctx.strokeStyle = this.drawingColor;
     },
 
-    _setSlideProperties: async function(id) {
+    _setSlideProperties: function(id) {
       // id is given, get the slide properties for the printing view
       if (id) {
-        if (!document.querySelector('#' + id)) await this._sleep(1000);
         this.currentSlide = document.querySelector('#' + id);
         this.slideHeight = document.body.offsetHeight - this.currentSlide.getBoundingClientRect().top
         - (document.body.offsetHeight - this.currentSlide.getBoundingClientRect().bottom);
       }
       else {
-        if (!document.querySelector('.present')) await this._sleep(1000);
 
         // we are in a fragment of Reveal, the height has to be calculated differently here
         if (document.querySelector('.reveal') && document.querySelector('.present').getBoundingClientRect().height == 0) {
@@ -193,7 +197,6 @@
         }
         // a normal slide
         else {
-          if (!document.querySelector('.present')) await this._sleep(1000);
           this.currentSlide = document.querySelector('.present');
           this.slideHeight = document.body.offsetHeight - this.currentSlide.getBoundingClientRect().top
           - (document.body.offsetHeight - this.currentSlide.getBoundingClientRect().bottom);
