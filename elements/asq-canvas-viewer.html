@@ -90,14 +90,23 @@ Example:
             break;
 
           case "loadImage":
-            this._setSlideProperties();
-            if (d.data) {
-              this.lastDrawing = d.data;
-              this._loadImage(this.lastDrawing);
+            if (document.readyState !== 'complete') {
+              window.addEventListener('load', function() {
+                this._loadImageHandler(d);
+              }.bind(this));
             }
+            else this._loadImageHandler(d);
             break;
         }
       },
+
+      _loadImageHandler: function(d) {
+        this._setSlideProperties();
+        if (d.data) {
+          this.lastDrawing = d.data;
+          this._loadImage(this.lastDrawing);
+        }
+      }
 
     });
   })();
