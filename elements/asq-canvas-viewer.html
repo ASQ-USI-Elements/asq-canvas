@@ -66,6 +66,9 @@ Example:
 
         switch (d.command){
           case "drawOnCanvas":
+            var standardWidth = 1366;
+            var standardHeight = 768;
+
             if (!d.form) return;
 
             var x1 = this._computeCoordinate(d.mouseX, d.slideWidth, this.slideWidth, d.sMX, this.sMX);
@@ -73,13 +76,12 @@ Example:
             var x2 = this._computeCoordinate(d.lastX, d.slideWidth, this.slideWidth, d.sMX, this.sMX);
             var y2 = this._computeCoordinate(d.lastY, d.slideHeight, this.slideHeight, d.sMY, this.sMY);
 
-            this._setDrawingProperties({ drawingColor : d.drawingColor, lineWidth : this._getLineWidth(d.lineWidth, d.slideWidth, d.slideHeight, this.slideWidth, this.slideHeight),
-              gCO : d.gCO});
+            this._setDrawingProperties({ drawingColor : d.drawingColor, lineWidth : d.lineWidth, gCO : d.gCO});
 
             this.lastDrawing.push(d);
 
-            if (d.form == "circle") this._drawCircle(x1, y1, this.lineWidth);
-            else this._drawLine(x1, y1, x2, y2, this.lineWidth);
+            if (d.form == "circle") this._drawCircle(x1, y1, this.lineWidth * (window.innerWidth * window.innerHeight) / (standardWidth * standardHeight));
+            else this._drawLine(x1, y1, x2, y2, this.lineWidth * (window.innerWidth * window.innerHeight) / (standardWidth * standardHeight));
 
             break;
 

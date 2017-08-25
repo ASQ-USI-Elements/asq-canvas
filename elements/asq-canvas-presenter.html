@@ -318,6 +318,8 @@ Example:
       },
 
       _onMousedown: function(evt) {
+        var standardWidth = 1366;
+        var standardHeight = 768;
         this._setDrawingProperties({ lineWidth: this.$.lineWidthSlider.value, updateLastXY : true, pageX : evt.pageX, pageY : evt.pageY, isDrawing : true });
 
         if (this.activeTool == "pen") {
@@ -326,17 +328,20 @@ Example:
 
         this.drawings[this.lastStep] = this.drawings[this.lastStep] || [];
 
-        this._drawCircle(this.mouseX, this.mouseY, this.lineWidth);
+        this._drawCircle(this.mouseX, this.mouseY, this.lineWidth  * (window.innerWidth * window.innerHeight) / (standardWidth * standardHeight));
         this._emitFillEvent('circle')
         this._pushLastDrawing('circle');
       },
 
       // bind mouse events
       _onMousemove: function(e) {
+        var standardWidth = 1366;
+        var standardHeight = 768;
+
         if (!this.isDrawing) return;
         this._setDrawingProperties({ pageX : e.pageX, pageY : e.pageY });
 
-        this._drawLine(this.mouseX, this.mouseY, this.lastX, this.lastY, this.lineWidth);
+        this._drawLine(this.mouseX, this.mouseY, this.lastX, this.lastY, this.lineWidth  * (window.innerWidth * window.innerHeight) / (standardWidth * standardHeight));
         this._emitFillEvent("line")
 
         this._pushLastDrawing('line');

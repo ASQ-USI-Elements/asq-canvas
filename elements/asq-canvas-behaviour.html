@@ -96,7 +96,10 @@
     },
 
     _getLineWidth: function(oLineWidth, oWidth, oHeight, cWidth, cHeight) {
-      return oLineWidth * (cWidth * cHeight)/(oWidth * oHeight);
+      var standardWidth = 1366;
+      var standardHeight = 768;
+
+      return oLineWidth * (window.innerWidth * window.innerHeight) / (standardWidth * standardHeight);
     },
 
     _loadImage: function(data) {
