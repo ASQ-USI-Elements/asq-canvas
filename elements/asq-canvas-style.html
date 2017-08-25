@@ -1,6 +1,7 @@
 <dom-module id="asq-canvas-style">
   <template>
     <style>
+      /*________________________________CANVAS________________________________*/
       :host {
         @apply(--layout-vertical);
         @apply(--layout-flex);
@@ -17,85 +18,18 @@
         cursor: crosshair;
       }
 
-      #drawingTools {
-        position: absolute;
-        left: 15px;
-        bottom: 15px;
-        pointer-events: auto;
-      }
+      /* ________________________________MENU_________________________________*/
 
-      #toggleDrawing {
-        background-color: white;
-        border-radius: 100px;
-        transition: 1s;
-        box-shadow: 0px 0px 1px;
-      }
-
-      #toggleDrawing:hover {
-        cursor: pointer;
-      }
-
-      .drawingMenu {
-        opacity: 0;
-        height: 0;
-        transition: 0.2s;
-      }
-
-      .activeMenu:hover {
-        color: var(--google-grey-500);
-        transition: 0.2s;
-      }
-
-      #slideUtils {
-        position: absolute;
-        left: -1px;
-        bottom: 20px;
-        width: 40px;
-        height: 0px;
-        background-color: white;
-        border: 1px solid #e2e2e2;
-        border-radius: 4px;
-        text-align: center;
-        transition: 0.5s;
-      }
-
-      .activeSlideUtils {
-        height: 145px !important;
-        transition: 0.5s;
-      }
-
-
-      .activeMenu {
-        opacity: 1;
-        transition: 0.5s;
-      }
-
-      #penBtn {
-        bottom: 47px;
-      }
-
-      #colorBtn {
-        bottom: 47px;
-        right: 7px;
-        width: 40px;
-        height: 40px;
-      }
-
-      #sizeBtn {
-        right: 89px;
-      }
-
-      #eraseBtn {
-        right: 89px;
-      }
-
+      /*___________________Dialogs */
       #addSlideDialog, #changeLineWidthDialog {
         position: absolute;
-        left: 29px;
-        bottom: 91px;
+        left: 105px;
+        top: 6px;
+        margin: 0;
         width: 180px;
         height: 100px;
         text-align: center;
+        pointer-events: auto;
       }
 
       #addSlideDialog .buttons {
@@ -138,16 +72,198 @@
         font-size: 17px;
       }
 
-      #colorBtn::shadow paper-listbox {
-        position: fixed;
-        left: 68px;
-        bottom: 114px;
-        box-shadow: 0 16px 24px 2px rgba(0, 0, 0, 0.14), 0 6px 30px 5px rgba(0, 0, 0, 0.12), 0 8px 10px -5px rgba(0, 0, 0, 0.4);
+      /*___________________Menu Container */
+      #menu {
+        transition: 1s;
+        position: absolute;
+        pointer-events: auto;
       }
 
+      /*___________________Menu Buttons */
       .active-tool {
         background-color: #dedede;
         border-radius: 100px;
+      }
+
+      .active-tool2 {
+        background-color: #dedede;
+      }
+
+      .active-tool3 {
+        background-color: #dedede;
+        border-radius: 0px 0px 100px 100px;
+      }
+
+      #burger {
+        left: 10px;
+        z-index: 2;
+        pointer-events: auto;
+        background-color: white;
+        border-radius: 100px;
+        transition: 0.8s;
+        box-shadow: 0px 0px 1px black;
+      }
+
+      #mainMenuBtns {
+        position: absolute;
+        top: 30px;
+        left: 10px;
+        width: 40px;
+        height: 0px;
+        text-align: center;
+        transition: 0.5s;
+        transition-delay: 0.2s;
+        background-color: white;
+        border-radius: 0px 0px 20px 20px;
+        box-shadow: 0px 0px 1px black;
+      }
+
+      #mainMenuBtns paper-icon-button {
+        opacity: 0;
+        height: 0px;
+        transition: 0.3s;
+        pointer-events: none;
+      }
+
+      #mainMenuBtns.showMenuBtns paper-icon-button:first-child {
+        margin-top: 25px;
+        transition-delay: 0.3s;
+      }
+
+      #mainMenuBtns.showMenuBtns paper-icon-button:nth-child(3) {
+        transition-delay: 0.4s;
+      }
+
+      #mainMenuBtns.showMenuBtns paper-icon-button:nth-child(5) {
+        transition-delay: 0.5s;
+      }
+
+      .showMenuBtns {
+        height: 145px !important;
+        transition: 0.5s;
+      }
+
+      .showMenuBtns paper-icon-button {
+        opacity: 1 !important;
+        height: 40px !important;
+        pointer-events: auto !important;
+      }
+
+      .menuBtn {
+        margin-top: 10px;
+        color: rgb(72, 72, 72) !important;
+      }
+
+      #mainMenuBtns .menuBtn {
+        margin-top: 0px;
+      }
+
+      .BtnHide paper-icon-button:first-child {
+        transition-delay:  0.4s !important;
+      }
+
+      .BtnHide paper-icon-button:nth-child(3) {
+        transition-delay:  0.3s !important;
+      }
+
+      .BtnHide paper-icon-button:nth-child(5) {
+        transition-delay:  0.1s !important;
+      }
+
+      .subMenuBtn, #swatchPicker::shadow paper-menu-button paper-icon-button {
+        height: 0px;
+        opacity: 0;
+        transition: 0.5s;
+        pointer-events: none;
+      }
+
+      .showSubMenuBtns .subMenuBtn, .showSubMenuBtns #swatchPicker::shadow paper-menu-button paper-icon-button {
+        height: 40px;
+        opacity: 1;
+        transition: 0.5s;
+      }
+
+      #slideUtilsBtns.showSubMenuBtns .subMenuBtn,
+      #drawingBtns.showSubMenuBtns .subMenuBtn,
+      .showSubMenuBtns #swatchPicker::shadow paper-menu-button paper-icon-button {
+        pointer-events: auto;
+      }
+
+      .subMenuBtn {
+        color: rgb(72, 72, 72);
+      }
+
+      #slideUtilsBtns {
+        height: 0px;
+        position: absolute;
+        top: 14px;
+        left: 57px;
+        width: 90px;
+      }
+
+      #drawingBtns {
+        width: 95px;
+        height: 0px;
+        position: absolute;
+        top: 15px;
+        left: 57px;
+      }
+
+      .showSubMenuBtns {
+        height: 80px !important;
+        z-index: 0;
+      }
+
+      #swatchPicker {
+        position: relative;
+        right: 6px;
+        display: inline-flex;
+        width: 40px;
+        margin: 0;
+        align-items: center;
+        padding: 0;
+      }
+
+      .secondRow {
+        margin-left: 40px;
+      }
+
+      #swatchPicker::shadow paper-listbox {
+        position: fixed;
+        left: 105px;
+        top: 6px;
+        box-shadow: 0 16px 24px 2px rgba(0, 0, 0, 0.14), 0 6px 30px 5px rgba(0, 0, 0, 0.12), 0 8px 10px -5px rgba(0, 0, 0, 0.4);
+      }
+
+      /*___________________Button Tooltips */
+      .menuDesc {
+        position: absolute;
+        top: 30px;
+        left: 50px;
+        color: #e4e4e4;
+        border-radius: 3px;
+        padding: 4px;
+        width: 90px;
+        background-color: rgb(72, 72, 72);
+        box-shadow: 0 0 1px black;
+        text-align: center;
+        font-size: 12px;
+        font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+        letter-spacing: 0.5px;
+        z-index: 2;
+      }
+
+      #slideUtilsBtns .subMenuDesc {
+        top: 0px;
+      }
+
+      #drawingBtns .subMenuDesc {
+        top: 4px;
+      }
+
+      /*_______________________________UTILITY________________________________*/
+      .hidden {
+        display: none;
       }
     </style>
   </template>

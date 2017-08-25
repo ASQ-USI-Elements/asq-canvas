@@ -29,6 +29,51 @@ Example:
 
     <canvas id="canvas" on-mousemove="_onMousemove" on-mousedown="_onMousedown" on-mouseup="_onMouseup"></canvas>
 
+    <div id="menu">
+      <paper-icon-button id="burger" class="menuBtn" icon="menu"></paper-icon-button>
+
+      <div id="mainMenuBtns">
+        <a href="/" target="_blank"><paper-icon-button id="home" class="menuBtn" icon="home"></paper-icon-button></a>
+        <div class="menuDesc hidden">Presentation Overview</div>
+
+        <paper-icon-button id="utils" class="menuBtn" icon="account-balance-wallet" noink></paper-icon-button>
+        <div class="menuDesc hidden" style="margin-top: 45px;">Slide Utils</div>
+
+        <paper-icon-button id="drawingTools" class="menuBtn" icon="image:brush" noink></paper-icon-button>
+        <div class="menuDesc hidden" style="margin-top: 85px;">Drawing Menu</div>
+      </div>
+
+      <div id="slideUtilsBtns">
+        <paper-icon-button id="addSlide" class="subMenuBtn" icon="add" on-click="_openAddSlideDialog" style="bottom: 5px;"></paper-icon-button>
+        <div class="menuDesc subMenuDesc hidden">New empty slide</div>
+
+        <paper-icon-button id="removeSlide" class="subMenuBtn" icon="remove" on-click="_removeSlide" style="bottom: 5px;"></paper-icon-button>
+        <div class="menuDesc subMenuDesc hidden secondRow" style="width: 98px;">Remove current empty slide</div>
+
+        <paper-icon-button id="print" class="subMenuBtn" icon="print" on-click="_printSlides"></paper-icon-button>
+        <div class="menuDesc subMenuDesc hidden" style="margin-top: 45px;">Print presentation</div>
+
+      </div>
+
+      <div id="drawingBtns">
+        <paper-swatch-picker id="swatchPicker" class="subMenuBtn" color="{{selectedColor}}" style="bottom: 5px;"></paper-swatch-picker>
+        <div class="menuDesc subMenuDesc hidden">Change color</div>
+
+        <paper-icon-button id="pen" class="subMenuBtn active-tool" icon="create" style="bottom: 5px;"></paper-icon-button>
+        <div class="menuDesc subMenuDesc hidden secondRow">Draw</div>
+
+        <paper-icon-button id="sizeSlider" class="subMenuBtn" icon="image:lens" on-click="_openChangeLineWidthDialog"></paper-icon-button>
+        <div class="menuDesc subMenuDesc hidden" style="margin-top: 39px;">Change line width</div>
+
+        <paper-icon-button id="eraser" class="subMenuBtn" icon="asq-canvas-icons:eraser"></paper-icon-button>
+        <div class="menuDesc subMenuDesc hidden secondRow" style="margin-top: 45px;">Erase</div>
+
+        <paper-icon-button id="download" class="subMenuBtn" icon="file-download" on-click="_downloadCurrentCanvas"></paper-icon-button>
+        <div class="menuDesc subMenuDesc hidden" style="margin-top: 79px; width: 98px;">Download current drawing</div>
+
+      </div>
+    </div>
+
     <paper-dialog id="addSlideDialog">
       <h2>Add a new slide</h2>
       <div class="buttons">
@@ -43,20 +88,6 @@ Example:
         <paper-slider id="lineWidthSlider" value="[[lineWidth]]" min="1" max="50" editable></paper-slider>
       </div>
     </paper-dialog>
-
-    <div id="drawingTools">
-      <div id="slideUtils">
-        <paper-icon-button id="addSlide" class="drawingMenu" title="add a new slide" icon="add" on-click="_openAddSlideDialog"></paper-icon-button>
-        <paper-icon-button id="removeSlide" class="drawingMenu" title="remove an inserted slide" icon="remove" on-click="_removeSlide"></paper-icon-button>
-        <paper-icon-button class="drawingMenu" title="download the current drawing" icon="file-download" on-click="_downloadCurrentCanvas"></paper-icon-button>
-    </div>
-
-    <paper-icon-button id="toggleDrawing" title="open drawing tools" icon="image:brush"></paper-icon-button>
-    <paper-icon-button id="penBtn" class="drawingMenu active-tool" title="start drawing" icon="create"></paper-icon-button>
-    <paper-swatch-picker id="colorBtn" class="drawingMenu" title="change color" color="{{selectedColor}}"></paper-swatch-picker>
-    <paper-icon-button id="sizeBtn" class="drawingMenu" title="change pencil size" icon="image:lens" on-click="_openChangeLineWidthDialog"></paper-icon-button>
-    <paper-icon-button id="eraseBtn" class="drawingMenu" title="use the eraser" icon="asq-canvas-icons:eraser"></paper-icon-button>
-  </div>
 
   </template>
 </dom-module>
@@ -129,13 +160,42 @@ Example:
       },
 
       ready: function() {
-        // add drawing tool buttons event listeners
-        this.$.toggleDrawing.addEventListener('click', this._toggleMenu.bind(this));
-        this.$.penBtn.addEventListener('click', this._draw.bind(this));
-        this.$.eraseBtn.addEventListener('click', this._erase.bind(this));
+        // menu event listeners
+        this.$.burger.addEventListener('mouseover', this._menuToggle.bind(this));
+        this.$.burger.addEventListener('click', this._menuToggle.bind(this));
 
+        this.$.home.addEventListener('mouseover', this._menuBtnHover.bind(this));
+        this.$.home.addEventListener('mouseout', this._menuBtnLeave.bind(this));
+        this.$.utils.addEventListener('mouseover', this._menuBtnHover.bind(this));
+        this.$.utils.addEventListener('mouseout', this._menuBtnLeave.bind(this));
+        this.$.utils.addEventListener('click', this._openSubMenu.bind(this));
+        this.$.drawingTools.addEventListener('mouseover', this._menuBtnHover.bind(this));
+        this.$.drawingTools.addEventListener('mouseout', this._menuBtnLeave.bind(this));
+        this.$.drawingTools.addEventListener('click', this._openSubMenu.bind(this));
+
+        // slide utils menu
+        this.$.addSlide.addEventListener('mouseover', this._menuBtnHover.bind(this));
+        this.$.addSlide.addEventListener('mouseout', this._menuBtnLeave.bind(this));
+        this.$.removeSlide.addEventListener('mouseover', this._menuBtnHover.bind(this));
+        this.$.removeSlide.addEventListener('mouseout', this._menuBtnLeave.bind(this));
+        this.$.print.addEventListener('mouseover', this._menuBtnHover.bind(this));
+        this.$.print.addEventListener('mouseout', this._menuBtnLeave.bind(this));
+
+        // drawings menu
+        this.$.swatchPicker.addEventListener('mouseover', this._menuBtnHover.bind(this));
+        this.$.swatchPicker.addEventListener('mouseout', this._menuBtnLeave.bind(this));
+        this.$.pen.addEventListener('mouseover', this._menuBtnHover.bind(this));
+        this.$.pen.addEventListener('mouseout', this._menuBtnLeave.bind(this));
+        this.$.sizeSlider.addEventListener('mouseover', this._menuBtnHover.bind(this));
+        this.$.sizeSlider.addEventListener('mouseout', this._menuBtnLeave.bind(this));
+        this.$.eraser.addEventListener('mouseover', this._menuBtnHover.bind(this));
+        this.$.eraser.addEventListener('mouseout', this._menuBtnLeave.bind(this));
+        this.$.download.addEventListener('mouseover', this._menuBtnHover.bind(this));
+        this.$.download.addEventListener('mouseout', this._menuBtnLeave.bind(this));
+        this.$.pen.addEventListener('click', this._draw.bind(this));
+        this.$.eraser.addEventListener('click', this._erase.bind(this));
         // change the paper swatch picker icon
-        var paletteIcon = this.$.colorBtn.shadowRoot.querySelector('#iconButton');
+        var paletteIcon = this.$.swatchPicker.shadowRoot.querySelector('#iconButton');
         paletteIcon.icon = "image:palette";
       },
 
@@ -258,10 +318,10 @@ Example:
       },
 
       _onMousedown: function(evt) {
-        this._setDrawingProperties({ updateLastXY : true, pageX : evt.pageX, pageY : evt.pageY, isDrawing : true });
+        this._setDrawingProperties({ lineWidth: this.$.lineWidthSlider.value, updateLastXY : true, pageX : evt.pageX, pageY : evt.pageY, isDrawing : true });
+
         if (this.activeTool == "pen") {
-          this.drawingColor = this.$.colorBtn.color || this.drawingColor;
-          this.lineWidth = this.$.lineWidthSlider.value || this.lineWidth;
+          this.drawingColor = this.$.swatchPicker.color || this.drawingColor;
         }
 
         this.drawings[this.lastStep] = this.drawings[this.lastStep] || [];
@@ -284,7 +344,7 @@ Example:
         this._setDrawingProperties({ updateLastXY : true });
       },
 
-      _onMouseup :function(e) {
+      _onMouseup: function(evt) {
         this.isDrawing = false;
         this._emitSaveDrawingsEvent(this.drawings);
       },
@@ -369,6 +429,9 @@ Example:
 
         if (!atEnd) { // insert after current slide
           var currentSlide = document.querySelector('section.present');
+
+          if (document.querySelector('#impress')) prevX = currentSlide.dataset.x;
+
           addedSlideIndex = this._indexOfSlide(currentSlide) + 1;
         }
         else { // insert at the end
@@ -379,7 +442,6 @@ Example:
         }
 
         slideId = "s" + this._idGenerator();
-        prevX = currentSlide.dataset.x;
 
         if (!this.eventBus) return;
         this.eventBus.emit('asq-plugin', {
@@ -435,14 +497,14 @@ Example:
       _draw: function(evt) {
         this.activeTool = "pen";
         evt.target.classList.add('active-tool');
-        if (this.$.eraseBtn.classList.contains('active-tool')) this.$.eraseBtn.classList.remove('active-tool');
-        this._setDrawingProperties({ drawingColor : this.$.colorBtn.color, gCO : 'source-over'});
+        if (this.$.eraser.classList.contains('active-tool')) this.$.eraser.classList.remove('active-tool');
+        this._setDrawingProperties({ drawingColor : this.$.swatchPicker.color, gCO : 'source-over'});
       },
 
       _erase: function(evt) {
         this.activeTool = "eraser";
         evt.target.classList.add('active-tool');
-        if (this.$.penBtn.classList.contains('active-tool')) this.$.penBtn.classList.remove('active-tool');
+        if (this.$.pen.classList.contains('active-tool')) this.$.pen.classList.remove('active-tool');
         this._setDrawingProperties({ drawingColor : 'rgba(0,0,0,1)', gCO : 'destination-out'});
       },
 
@@ -501,28 +563,62 @@ Example:
         }
       },
 
-      _toggleMenu: function(evt) {
-        if (evt.target.icon == "image:brush") {
-          evt.target.icon = "clear";
-          this.isInteractive = true;
-          this.activeCanvas = !this.activeCanvas;
-          this.$.slideUtils.classList.add('activeSlideUtils');
-          Polymer.dom(this.root).querySelectorAll('.drawingMenu').forEach(function(button) {
-            button.classList.remove('drawingMenu');
-            button.classList.add('activeMenu');
-          });
-          this.$.penBtn.click();
+      _menuToggle: function(evt) {
+        if (this.$.burger.icon == 'menu') {
+          this.$.mainMenuBtns.classList.remove('BtnHide');
+          this.$.mainMenuBtns.classList.add('showMenuBtns');
+          this.$.burger.style.transform = 'rotate(360deg)';
+          setTimeout(function() { this.icon = 'clear' }.bind(this.$.burger), 1);
         }
         else {
-          evt.target.icon = "image:brush";
           this.isInteractive = false;
-          evt.target.style.pointerEvents = "auto";
-          this.activeCanvas = !this.activeCanvas;
-          this.$.slideUtils.className = "";
-          Polymer.dom(this.root).querySelectorAll('.activeMenu').forEach(function(button) {
-            button.classList.remove('activeMenu');
-            button.classList.add('drawingMenu');
-          });
+          this.activeCanvas = false;
+
+          this.$.slideUtilsBtns.classList.remove('showSubMenuBtns');
+          this.$.drawingBtns.classList.remove('showSubMenuBtns');
+          if (this.$.drawingTools.classList.contains('active-tool')) this.$.drawingTools.classList.remove('active-tool');
+          if (this.$.utils.classList.contains('active-tool2')) this.$.utils.classList.remove('active-tool2');
+
+          this.$.mainMenuBtns.classList.add('BtnHide');
+          this.$.mainMenuBtns.classList.remove('showMenuBtns');
+          this.$.burger.style.transform = 'rotate(0deg)';
+          setTimeout(function() { this.icon = 'menu' }.bind(this.$.burger), 1);
+        }
+      },
+
+      _menuBtnHover: function(evt) {
+        var hoveredEl = (evt.target.id != 'home')? evt.target : evt.target.parentNode;
+        hoveredEl.nextSibling.nextSibling.classList.remove('hidden');
+      },
+
+      _menuBtnLeave: function(evt) {
+        var hoveredEl = (evt.target.id != 'home')? evt.target : evt.target.parentNode;
+        hoveredEl.nextSibling.nextSibling.classList.add('hidden');
+      },
+
+      _printSlides: function() {
+        window.location.search = window.location.search + '&print-pdf';
+      },
+
+      _openSubMenu: function(evt) {
+        this.$.slideUtilsBtns.classList.remove('showSubMenuBtns');
+        this.$.drawingBtns.classList.remove('showSubMenuBtns');
+
+        if (evt.target.id == 'utils') {
+          this.$.slideUtilsBtns.classList.add('showSubMenuBtns');
+          this.$.utils.classList.add('active-tool2');
+          if (this.$.drawingTools.classList.contains('active-tool3')) this.$.drawingTools.classList.remove('active-tool3');
+
+          this.isInteractive = false;
+          this.activeCanvas = false;
+        }
+        else {
+          this.$.drawingBtns.classList.add('showSubMenuBtns');
+          this.$.drawingTools.classList.add('active-tool3');
+          if (this.$.utils.classList.contains('active-tool2')) this.$.utils.classList.remove('active-tool2');
+          this.isInteractive = true;
+          this.activeCanvas = true;
+          this.$.pen.click();
         }
       },
 

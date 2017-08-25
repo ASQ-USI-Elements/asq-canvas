@@ -203,7 +203,7 @@
       // get the midpoint of the current slide
       this.sMX = this.currentSlide.getBoundingClientRect().left + this.slideWidth/2;
       this.sMY = this.currentSlide.getBoundingClientRect().top + this.slideHeight/2;
-      if (this.printing) this.sMX = this.slideWidth/2;
+      if (this.printing) this.sMX = this.slideWidth/2 + parseInt(document.defaultView.getComputedStyle(this.currentSlide, null).marginLeft);
       if (this.printing) this.sMY = this.currentSlide.getBoundingClientRect().top - document.getElementById(id + 'Div').offsetTop + this.slideHeight/2;
 
 
