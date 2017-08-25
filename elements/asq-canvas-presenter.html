@@ -293,8 +293,8 @@ Example:
       },
 
       _onAsqPluginCustomData: function(evt) {
-        if (evt.data.command == 'storeDrawingsLocally' && evt.data.pluginCustomData) {
-          this.drawings = evt.data.pluginCustomData.drawings || {};
+        if (evt.data.command == 'storeDrawingsLocally') {
+          this.drawings = (evt.data.pluginCustomData)? evt.data.pluginCustomData.drawings : {};
           this.gotDrawings = true;
           var event = new Event('gotDrawings');
           this.$.canvas.dispatchEvent(event);
