@@ -140,6 +140,7 @@
 
     _resizeCanvas: function (id) {
       if (!this.printing) {
+        this._setSlideProperties();
         var timeOutSet = false;
         var resizeAnimation = setInterval(function() {
           if (!this.printing) this._clearTo();
@@ -211,15 +212,7 @@
       this.sMY = this.currentSlide.getBoundingClientRect().top + this.slideHeight/2;
       if (this.printing) this.sMX = this.slideWidth/2 + parseInt(document.defaultView.getComputedStyle(this.currentSlide, null).marginLeft);
       if (this.printing) this.sMY = this.currentSlide.getBoundingClientRect().top - document.getElementById(id + 'Div').offsetTop + this.slideHeight/2;
-
-
-      return new Promise(resolve => resolve());
     },
-
-    _sleep: function (ms) {
-      return new Promise(resolve => setTimeout(resolve, ms));
-    },
-
   };
 
   var asqCanvasElementBehavior = ASQ.asqElementBehavior.slice(0);
