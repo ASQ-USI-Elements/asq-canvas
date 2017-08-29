@@ -207,7 +207,7 @@ Example:
 
       _presenterAttachedHandler: function() {
         this._setDrawingProperties({ activeCanvas : false, activeTool : "pen" });
-        this._emitGetSlidesEvent();
+        (this.printing)? this._emitGetSlidesEvent(true) : this._emitGetSlidesEvent();
         this._emitGetDrawingsEvent();
         if (this.printing && !this.printed) {
           this.printed = true;
@@ -296,10 +296,11 @@ Example:
       // draw the current drawing and retrieve the extra slides if the viewer connects later
       _onConnected: function(evt) {
         this._emitLoadImageEvent(this.drawings[this.lastStep], this.lastStep);
-        this._emitGetSlidesEvent();
+        (this.printing)? this._emitGetSlidesEvent(true) : this._emitGetSlidesEvent();
       },
 
       _onGoto: function(evt) {
+        this.ctx = this.ctx || this.$.canvas.getContext('2d');
         var id = evt.data.step || evt.data.id;
         if (!this.printing && id != '0') {
           // wait for all elements to be loaded
@@ -313,7 +314,6 @@ Example:
       },
 
       _goToHandler: function(id) {
-        console.log(id);
         // we are at the beginning or resume the presentation
         if (!this.lastStep) {
           if (document.querySelector('.reveal')) {
@@ -408,12 +408,13 @@ Example:
         });
       },
 
-      _emitGetSlidesEvent: function() {
+      _emitGetSlidesEvent: function(printing) {
         if (!this.eventBus) return;
         this.eventBus.emit('asq-plugin', {
           type: 'asq-canvas',
           data: {
             command: 'getSlides',
+            printing: printing,
           }
         });
       },
@@ -443,20 +444,24 @@ Example:
 
       _addSlide: function(atEnd) {
         var addedSlideIndex, slideId, prevX;
+        var prevSlide = document.querySelector('section.present');
 
         if (!atEnd) { // insert after current slide
-          var currentSlide = document.querySelector('section.present');
 
-          if (document.querySelector('#impress')) prevX = currentSlide.dataset.x;
-
-          addedSlideIndex = this._indexOfSlide(currentSlide) + 1;
+          addedSlideIndex = this._indexOfSlide(prevSlide) + 1;
         }
         else { // insert at the end
           if (document.querySelector('.reveal')) {
             addedSlideIndex = document.querySelector('.reveal .slides').children.length;
           }
-          else addedSlideIndex = document.querySelector('#impress > div').children.length;
+          else {
+            var slides = document.querySelector('#impress > div').children;
+            addedSlideIndex = slides.length;
+            prevSlide = slides[slides.length - 1];
+          }
         }
+
+        if (document.querySelector('#impress')) prevX = prevSlide.dataset.x;
 
         slideId = "s" + this._idGenerator();
 

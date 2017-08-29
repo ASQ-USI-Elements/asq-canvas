@@ -141,10 +141,12 @@
 
     _resizeCanvas: function () {
       if (!this.printing) {
-        this._setSlideProperties();
+        var id = window.location.hash.substring(2) || '';
+        this._setSlideProperties(id);
         var timeOutSet = false;
-        var resizeAnimation = setInterval(function() {
-          this._setSlideProperties();
+        var resizeAnimation = setInterval(function(id) {
+          var id = window.location.hash.substring(2) || '';
+          this._setSlideProperties(id);
           if (!this.printing) this._clearTo();
           this.$.canvas.width = this.offsetWidth;
           this.$.canvas.height = this.offsetHeight;
