@@ -80,8 +80,8 @@ Example:
 
             this.lastDrawing.push(d);
 
-            if (d.form == "circle") this._drawCircle(x1, y1, this.lineWidth * (window.innerWidth * window.innerHeight) / (standardWidth * standardHeight));
-            else this._drawLine(x1, y1, x2, y2, this.lineWidth * (window.innerWidth * window.innerHeight) / (standardWidth * standardHeight));
+            if (d.form == "circle") this._drawCircle(null, x1, y1, this.lineWidth * (window.innerWidth * window.innerHeight) / (standardWidth * standardHeight));
+            else this._drawLine(null, x1, y1, x2, y2, this.lineWidth * (window.innerWidth * window.innerHeight) / (standardWidth * standardHeight));
 
             break;
 
@@ -101,9 +101,9 @@ Example:
       },
 
       _loadImageHandler: function(d) {
-        this._setSlideProperties();
-        if (d.data) {
-          this.lastDrawing = d.data;
+        this._setSlideProperties(d.slideId);
+        if (d.drawing) {
+          this.lastDrawing = d.drawing;
           this._loadImage(this.lastDrawing);
         }
       }

@@ -27,6 +27,7 @@
     },
 
     attached: function() {
+      if (window.location.search.match(/print-pdf/gi)) this.printing = true;
       if (document.readyState !== 'complete') {
         window.addEventListener('load', function(){
           this._attachedHandler();
@@ -38,8 +39,6 @@
     _attachedHandler: function() {
       this.ctx = this.$.canvas.getContext('2d');
       this._setDrawingProperties({ lastX : 0, lastY: 0 });
-
-      if (window.location.search.match(/print-pdf/gi)) this.printing = true;
 
       if (!this.printing) {
 
@@ -62,16 +61,17 @@
       return cMP + (oCoordinate - oMP) * (cSize/oSize);
     },
 
-    _drawLine: function(x1, y1, x2, y2, lineWidth) {
-      this._drawOnCanvas("line", x1, y1, lineWidth, x2, y2);
+    _drawLine: function(ctx, x1, y1, x2, y2, lineWidth) {
+      this._drawOnCanvas(ctx, "line", x1, y1, lineWidth, x2, y2);
     },
 
-    _drawCircle: function(x, y, lineWidth) {
-      this._drawOnCanvas("circle", x, y, lineWidth);
+    _drawCircle: function(ctx, x, y, lineWidth) {
+      this._drawOnCanvas(ctx, "circle", x, y, lineWidth);
     },
 
-    _drawOnCanvas: function(form, x1, y1, lineWidth, x2, y2) {
+    _drawOnCanvas: function(ctx, form, x1, y1, lineWidth, x2, y2) {
       var radius = lineWidth/2;
+      var context = ctx || this.ctx;
 
       for (var i = 0; i < lineWidth * lineWidth; ++i) {
         var currentX = i%lineWidth;
@@ -89,14 +89,14 @@
         if ((radius >= 1)?  hypotenuse < radius : hypotenuse > radius) {
           switch (form) {
             case "circle":
-              this.ctx.fillRect(canvasX1, canvasY1, 1, 1);
+              context.fillRect(canvasX1, canvasY1, 1, 1);
               break;
 
             case "line":
-              this.ctx.beginPath();
-              this.ctx.moveTo(canvasX1, canvasY1);
-              this.ctx.lineTo(canvasX2, canvasY2);
-              this.ctx.stroke();
+              context.beginPath();
+              context.moveTo(canvasX1, canvasY1);
+              context.lineTo(canvasX2, canvasY2);
+              context.stroke();
               break;
           }
         }
@@ -106,11 +106,12 @@
     _getLineWidth: function(oLineWidth, oWidth, oHeight, cWidth, cHeight) {
       var standardWidth = 1366;
       var standardHeight = 768;
-
-      return oLineWidth * (window.innerWidth * window.innerHeight) / (standardWidth * standardHeight);
+      var lineWidth = oLineWidth * (window.innerWidth * window.innerHeight) / (standardWidth * standardHeight);
+      if (this.printing) lineWidth = oLineWidth *  (standardWidth * standardHeight)/ (document.body.offsetWidth * document.body.offsetHeight);
+      return lineWidth;
     },
 
-    _loadImage: function(data) {
+    _loadImage: function(data, ctx) {
       var prevColor = this.drawingColor || '#000';
       var prevGCO = this.ctx.globalCompositeOperation || 'source-over';
 
@@ -123,13 +124,13 @@
 
         switch (drawStep.form) {
           case "circle":
-            this._drawCircle(x1, y1, lineWidth);
+            this._drawCircle(ctx, x1, y1, lineWidth, ctx);
             break;
 
           case "line":
             var x2 = this._computeCoordinate(drawStep.lastX, drawStep.slideWidth, this.slideWidth, drawStep.sMX, this.sMX);
             var y2 = this._computeCoordinate(drawStep.lastY, drawStep.slideHeight, this.slideHeight, drawStep.sMY, this.sMY);
-            this._drawLine(x1, y1, x2, y2, lineWidth);
+            this._drawLine(ctx, x1, y1, x2, y2, lineWidth, ctx);
             break;
         }
 
@@ -138,11 +139,12 @@
       }.bind(this));
     },
 
-    _resizeCanvas: function (id) {
+    _resizeCanvas: function () {
       if (!this.printing) {
         this._setSlideProperties();
         var timeOutSet = false;
         var resizeAnimation = setInterval(function() {
+          this._setSlideProperties();
           if (!this.printing) this._clearTo();
           this.$.canvas.width = this.offsetWidth;
           this.$.canvas.height = this.offsetHeight;

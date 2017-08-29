@@ -141,11 +141,6 @@ Example:
             type: Boolean,
             value: false,
         },
-
-        printChild: {
-          type: Boolean,
-          value: false,
-        }
       },
 
       created: function() {
@@ -161,47 +156,47 @@ Example:
 
       ready: function() {
         // menu event listeners
-        this.$.burger.addEventListener('mouseover', this._menuToggle.bind(this));
-        this.$.burger.addEventListener('click', this._menuToggle.bind(this));
+        if (!this.printing) {
+          this.$.burger.addEventListener('mouseover', this._menuToggle.bind(this));
+          this.$.burger.addEventListener('click', this._menuToggle.bind(this));
 
-        this.$.home.addEventListener('mouseover', this._menuBtnHover.bind(this));
-        this.$.home.addEventListener('mouseout', this._menuBtnLeave.bind(this));
-        this.$.utils.addEventListener('mouseover', this._menuBtnHover.bind(this));
-        this.$.utils.addEventListener('mouseout', this._menuBtnLeave.bind(this));
-        this.$.utils.addEventListener('click', this._openSubMenu.bind(this));
-        this.$.drawingTools.addEventListener('mouseover', this._menuBtnHover.bind(this));
-        this.$.drawingTools.addEventListener('mouseout', this._menuBtnLeave.bind(this));
-        this.$.drawingTools.addEventListener('click', this._openSubMenu.bind(this));
+          this.$.home.addEventListener('mouseover', this._menuBtnHover.bind(this));
+          this.$.home.addEventListener('mouseout', this._menuBtnLeave.bind(this));
+          this.$.utils.addEventListener('mouseover', this._menuBtnHover.bind(this));
+          this.$.utils.addEventListener('mouseout', this._menuBtnLeave.bind(this));
+          this.$.utils.addEventListener('click', this._openSubMenu.bind(this));
+          this.$.drawingTools.addEventListener('mouseover', this._menuBtnHover.bind(this));
+          this.$.drawingTools.addEventListener('mouseout', this._menuBtnLeave.bind(this));
+          this.$.drawingTools.addEventListener('click', this._openSubMenu.bind(this));
 
-        // slide utils menu
-        this.$.addSlide.addEventListener('mouseover', this._menuBtnHover.bind(this));
-        this.$.addSlide.addEventListener('mouseout', this._menuBtnLeave.bind(this));
-        this.$.removeSlide.addEventListener('mouseover', this._menuBtnHover.bind(this));
-        this.$.removeSlide.addEventListener('mouseout', this._menuBtnLeave.bind(this));
-        this.$.print.addEventListener('mouseover', this._menuBtnHover.bind(this));
-        this.$.print.addEventListener('mouseout', this._menuBtnLeave.bind(this));
+          // slide utils menu
+          this.$.addSlide.addEventListener('mouseover', this._menuBtnHover.bind(this));
+          this.$.addSlide.addEventListener('mouseout', this._menuBtnLeave.bind(this));
+          this.$.removeSlide.addEventListener('mouseover', this._menuBtnHover.bind(this));
+          this.$.removeSlide.addEventListener('mouseout', this._menuBtnLeave.bind(this));
+          this.$.print.addEventListener('mouseover', this._menuBtnHover.bind(this));
+          this.$.print.addEventListener('mouseout', this._menuBtnLeave.bind(this));
 
-        // drawings menu
-        this.$.swatchPicker.addEventListener('mouseover', this._menuBtnHover.bind(this));
-        this.$.swatchPicker.addEventListener('mouseout', this._menuBtnLeave.bind(this));
-        this.$.pen.addEventListener('mouseover', this._menuBtnHover.bind(this));
-        this.$.pen.addEventListener('mouseout', this._menuBtnLeave.bind(this));
-        this.$.sizeSlider.addEventListener('mouseover', this._menuBtnHover.bind(this));
-        this.$.sizeSlider.addEventListener('mouseout', this._menuBtnLeave.bind(this));
-        this.$.eraser.addEventListener('mouseover', this._menuBtnHover.bind(this));
-        this.$.eraser.addEventListener('mouseout', this._menuBtnLeave.bind(this));
-        this.$.download.addEventListener('mouseover', this._menuBtnHover.bind(this));
-        this.$.download.addEventListener('mouseout', this._menuBtnLeave.bind(this));
-        this.$.pen.addEventListener('click', this._draw.bind(this));
-        this.$.eraser.addEventListener('click', this._erase.bind(this));
-        // change the paper swatch picker icon
-        var paletteIcon = this.$.swatchPicker.shadowRoot.querySelector('#iconButton');
-        paletteIcon.icon = "image:palette";
+          // drawings menu
+          this.$.swatchPicker.addEventListener('mouseover', this._menuBtnHover.bind(this));
+          this.$.swatchPicker.addEventListener('mouseout', this._menuBtnLeave.bind(this));
+          this.$.pen.addEventListener('mouseover', this._menuBtnHover.bind(this));
+          this.$.pen.addEventListener('mouseout', this._menuBtnLeave.bind(this));
+          this.$.sizeSlider.addEventListener('mouseover', this._menuBtnHover.bind(this));
+          this.$.sizeSlider.addEventListener('mouseout', this._menuBtnLeave.bind(this));
+          this.$.eraser.addEventListener('mouseover', this._menuBtnHover.bind(this));
+          this.$.eraser.addEventListener('mouseout', this._menuBtnLeave.bind(this));
+          this.$.download.addEventListener('mouseover', this._menuBtnHover.bind(this));
+          this.$.download.addEventListener('mouseout', this._menuBtnLeave.bind(this));
+          this.$.pen.addEventListener('click', this._draw.bind(this));
+          this.$.eraser.addEventListener('click', this._erase.bind(this));
+          // change the paper swatch picker icon
+          var paletteIcon = this.$.swatchPicker.shadowRoot.querySelector('#iconButton');
+          paletteIcon.icon = "image:palette";
+        }
       },
 
       attached: function() {
-        if (window.location.search.match(/print-pdf/gi)) this.printing = true;
-
         if (document.readyState !== 'complete') {
           window.addEventListener('load', function() {
             this._presenterAttachedHandler();
@@ -212,73 +207,70 @@ Example:
 
       _presenterAttachedHandler: function() {
         this._setDrawingProperties({ activeCanvas : false, activeTool : "pen" });
-        if (!this.printChild) this._emitGetSlidesEvent();
-
-        if (this.printing && !this.printChild) {
-
-          this._emitGetDrawingsEvent();
-          if (!window.printed) {
-            if (!this.gotDrawings) {
-              this.$.canvas.addEventListener('gotDrawings', function() {
-                this._printHandler();
-              }.bind(this));
-            }
-            else this._printHandler();
+        this._emitGetSlidesEvent();
+        this._emitGetDrawingsEvent();
+        if (this.printing && !this.printed) {
+          this.printed = true;
+          if (!this.gotDrawings) {
+            this.$.canvas.addEventListener('gotDrawings', function() {
+              this._printHandler();
+            }.bind(this));
           }
+          else this._printHandler();
         }
       },
 
       _printHandler: function() {
-          window.printed = true;
-          var slides = document.querySelector('.slides');
+          var slides = (document.querySelector('.reveal'))? document.querySelector('.slides') : document.querySelector('#impress');
           var slideArray = [];
           var toRemove = [];
 
-          [].forEach.call(slides.children, function(section) {
-            if (section.id) {
-              var slide = document.getElementById(section.id);
+          [].forEach.call(slides.children, function(slide) {
+            if (slide.id) {
+              var slide = document.getElementById(slide.id);
               slideArray.push(slide);
             }
             else {
-              [].forEach.call(section.children, function(sectionChild) {
-                if (sectionChild.id && sectionChild.nodeName == 'SECTION') {
-                  var slide = document.getElementById(sectionChild.id);
+              [].forEach.call(slide.children, function(slideChild) {
+                if (slideChild.id && slideChild.nodeName == 'SECTION') {
+                  var slide = document.getElementById(slideChild.id);
                   slideArray.push(slide);
                 }
               });
-              toRemove.push(section);
+              toRemove.push(slide);
             }
           });
 
-          toRemove.forEach(function(section) {
-            section.parentNode.removeChild(section);
+          toRemove.forEach(function(slide) {
+            slide.parentNode.removeChild(slide);
           });
 
           slideArray.forEach(function(slide) {
             var slideDiv = document.createElement('DIV');
             slideDiv.id = slide.id + 'Div';
 
-            var canvas = document.createElement('asq-canvas');
-            canvas.role = 'presenter';
-            canvas.printChild = true;
+            var canvas = document.createElement('canvas');
 
             slideDiv.appendChild(slide);
             slideDiv.appendChild(canvas);
 
             slides.appendChild(slideDiv);
             slideDiv.className = 'slideDiv';
-            slideDiv.style.height = window.outerHeight + 'px';
+            slideDiv.style.height = '792px';
           });
 
           Object.getOwnPropertyNames(this.drawings).forEach(function(slideId) {
-            var presenterCanvas = document.querySelector('#' + slideId + 'Div' + ' asq-canvas').shadowRoot.querySelector('asq-canvas-presenter');
-            presenterCanvas._setSlideProperties(slideId);
-            presenterCanvas.drawingTool = 'pen';
-            presenterCanvas.$.canvas.height = document.querySelector('#' + slideId + 'Div' + ' asq-canvas').offsetHeight;
-            presenterCanvas.$.canvas.width = document.querySelector('#' + slideId + 'Div' + ' asq-canvas').offsetWidth;
-
-            presenterCanvas._loadImage(this.drawings[slideId]);
+            if (slideId != '0') {
+              this._setSlideProperties(slideId);
+              var canvas = document.querySelector('#' + slideId + 'Div canvas')
+              canvas.width = document.querySelector('#' + slideId + 'Div').offsetWidth;
+              canvas.height = document.querySelector('#' + slideId + 'Div').offsetHeight;
+              var ctx = canvas.getContext('2d');
+              this._loadImage(this.drawings[slideId], ctx);
+            }
           }.bind(this));
+
+          window.print();
       },
 
       _subscribeToEvents: function(eventBus) {
@@ -303,43 +295,38 @@ Example:
 
       // draw the current drawing and retrieve the extra slides if the viewer connects later
       _onConnected: function(evt) {
-        this._emitLoadImageEvent(this.drawings[this.lastStep]);
+        this._emitLoadImageEvent(this.drawings[this.lastStep], this.lastStep);
         this._emitGetSlidesEvent();
       },
 
       _onGoto: function(evt) {
-        if (window.location.search.match(/print-pdf/gi)) this.printing = true;
-        if (!this.printing) {
+        var id = evt.data.step || evt.data.id;
+        if (!this.printing && id != '0') {
           // wait for all elements to be loaded
           if (document.readyState !== 'complete') {
             window.addEventListener('load', function(){
-              this._goToHandler(evt);
+              this._goToHandler(id);
             }.bind(this));
           }
-          else this._goToHandler(evt)
+          else this._goToHandler(id)
         }
       },
 
-      _goToHandler: function(evt) {
-        if (!this.printing) {
-          var id = evt.data.step || evt.data.id;
-          // we are at the beginning or resume the presentation
-          if (!this.lastStep) {
-            if (id == '0' && document.querySelector('.reveal')) {
-              id = document.querySelector('.slides section:first-child').id;
-            }
-            this.lastStep = id;
-            this._emitGetDrawingsEvent();
+      _goToHandler: function(id) {
+        console.log(id);
+        // we are at the beginning or resume the presentation
+        if (!this.lastStep) {
+          if (document.querySelector('.reveal')) {
+            id = document.querySelector('.slides section:first-child').id;
           }
-
-          this.drawings[this.lastStep] = this.drawings[this.lastStep] || [];
-
           this.lastStep = id;
-
-          this._setSlideProperties();
-
-          this._changeDrawingOnGoto(id);
         }
+
+        this.drawings[this.lastStep] = this.drawings[this.lastStep] || [];
+
+        this.lastStep = id;
+
+        this._changeDrawingOnGoto(id);
       },
 
       _onMousedown: function(evt) {
@@ -353,7 +340,7 @@ Example:
 
         this.drawings[this.lastStep] = this.drawings[this.lastStep] || [];
 
-        this._drawCircle(this.mouseX, this.mouseY, this.lineWidth  * (window.innerWidth * window.innerHeight) / (standardWidth * standardHeight));
+        this._drawCircle(null, this.mouseX, this.mouseY, this.lineWidth  * (window.innerWidth * window.innerHeight) / (standardWidth * standardHeight));
         this._emitFillEvent('circle')
         this._pushLastDrawing('circle');
       },
@@ -366,7 +353,7 @@ Example:
         if (!this.isDrawing) return;
         this._setDrawingProperties({ pageX : e.pageX, pageY : e.pageY });
 
-        this._drawLine(this.mouseX, this.mouseY, this.lastX, this.lastY, this.lineWidth  * (window.innerWidth * window.innerHeight) / (standardWidth * standardHeight));
+        this._drawLine(null, this.mouseX, this.mouseY, this.lastX, this.lastY, this.lineWidth  * (window.innerWidth * window.innerHeight) / (standardWidth * standardHeight));
         this._emitFillEvent("line")
 
         this._pushLastDrawing('line');
@@ -431,14 +418,14 @@ Example:
         });
       },
 
-      _emitLoadImageEvent: function(data) {
-        data = data || this.emptyCanvasData;
+      _emitLoadImageEvent: function(drawing, slideId) {
         if (!this.eventBus) return;
         this.eventBus.emit('asq-plugin', {
           type: 'asq-canvas',
           data: {
             command: "loadImage",
-            data: data,
+            drawing: drawing,
+            slideId: slideId,
           }
         });
       },
@@ -501,15 +488,17 @@ Example:
 
         if (document.querySelector('.reveal')) {
           if (this.drawings[id]) {
+            this._setSlideProperties(id);
             this._loadImage(this.drawings[id]);
-            this._emitLoadImageEvent(this.drawings[id]);
+            this._emitLoadImageEvent(this.drawings[id], id);
           }
         }
         else {
           setTimeout(function() {
             if (this.drawings[id]) {
+              this._setSlideProperties(id);
               this._loadImage(this.drawings[id]);
-              this._emitLoadImageEvent(this.drawings[id]);
+              this._emitLoadImageEvent(this.drawings[id], id);
             }
           }.bind(this), 1000);
         }
@@ -608,7 +597,7 @@ Example:
 
           this.$.slideUtilsBtns.classList.remove('showSubMenuBtns');
           this.$.drawingBtns.classList.remove('showSubMenuBtns');
-          if (this.$.drawingTools.classList.contains('active-tool')) this.$.drawingTools.classList.remove('active-tool');
+          if (this.$.drawingTools.classList.contains('active-tool3')) this.$.drawingTools.classList.remove('active-tool3');
           if (this.$.utils.classList.contains('active-tool2')) this.$.utils.classList.remove('active-tool2');
 
           this.$.mainMenuBtns.classList.add('BtnHide');
