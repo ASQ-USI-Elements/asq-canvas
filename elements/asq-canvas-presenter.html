@@ -393,7 +393,8 @@ Example:
             slideWidth: this.slideWidth,
             slideHeight: this.slideHeight,
             sMX: this.sMX,
-            sMY: this.sMY
+            sMY: this.sMY,
+            gCO: this.ctx.globalCompositeOperation
           }
         });
       },
@@ -476,7 +477,7 @@ Example:
             prevX: prevX
           }
         });
-
+        this.lastStep = slideId;
       },
 
       _addSlideAfterCurrentSlide: function() {
