@@ -30,7 +30,7 @@ Example:
     <canvas id="canvas" on-mousemove="_onMousemove" on-mousedown="_onMousedown" on-mouseup="_onMouseup" on-touchstart="_onTouchstart" on-touchmove="_onTouchmove" on-touchend-="_onTouchend"></canvas>
 
     <div id="menu">
-      <paper-icon-button id="burger" class="menuBtn" src="ASQLogoBlack.png"></paper-icon-button>
+      <paper-icon-button id="burger" class="menuBtn" icon="asq:a"></paper-icon-button>
 
       <div id="mainMenuBtns">
         <a href="/" target="_blank"><paper-icon-button id="home" class="menuBtn" icon="home"></paper-icon-button></a>
@@ -190,7 +190,7 @@ Example:
           this.$.download.addEventListener('mouseout', this._menuBtnLeave.bind(this));
           this.$.pen.addEventListener('click', this._draw.bind(this));
           this.$.eraser.addEventListener('click', this._erase.bind(this));
-          
+
           // change the paper swatch picker icon
           var paletteIcon = this.$.swatchPicker.shadowRoot.querySelector('#iconButton');
           paletteIcon.icon = "image:palette";
@@ -607,6 +607,7 @@ Example:
 
       _menuToggle: function(evt) {
         if (this.$.burger.icon != 'clear') {
+          this.$.burger.classList.remove('logo-shown');
           this.$.mainMenuBtns.classList.remove('BtnHide');
           this.$.mainMenuBtns.classList.add('showMenuBtns');
           this.$.burger.style.transform = 'rotate(360deg)';
@@ -618,6 +619,7 @@ Example:
           this.isInteractive = false;
           this.activeCanvas = false;
 
+          this.$.burger.classList.add('logo-shown');
           this.$.slideUtilsBtns.classList.remove('showSubMenuBtns');
           this.$.drawingBtns.classList.remove('showSubMenuBtns');
           if (this.$.drawingTools.classList.contains('active-tool3')) this.$.drawingTools.classList.remove('active-tool3');
@@ -627,7 +629,7 @@ Example:
           this.$.mainMenuBtns.classList.remove('showMenuBtns');
           this.$.burger.style.transform = 'rotate(0deg)';
           setTimeout(function() {
-            this.icon = '';
+            this.icon = 'asq:a';
            }.bind(this.$.burger), 1);
         }
       },
