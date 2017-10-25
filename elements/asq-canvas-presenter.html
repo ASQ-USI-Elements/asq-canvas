@@ -27,10 +27,10 @@ Example:
 
     <style include="asq-canvas-style"></style>
 
-    <canvas id="canvas" on-mousemove="_onMousemove" on-mousedown="_onMousedown" on-mouseup="_onMouseup"></canvas>
+    <canvas id="canvas" on-mousemove="_onMousemove" on-mousedown="_onMousedown" on-mouseup="_onMouseup" on-touchstart="_onTouchstart" on-touchmove="_onTouchmove" on-touchend-="_onTouchend"></canvas>
 
     <div id="menu">
-      <paper-icon-button id="burger" class="menuBtn" icon="menu"></paper-icon-button>
+      <paper-icon-button id="burger" class="menuBtn" src="ASQLogoBlack.png"></paper-icon-button>
 
       <div id="mainMenuBtns">
         <a href="/" target="_blank"><paper-icon-button id="home" class="menuBtn" icon="home"></paper-icon-button></a>
@@ -190,6 +190,7 @@ Example:
           this.$.download.addEventListener('mouseout', this._menuBtnLeave.bind(this));
           this.$.pen.addEventListener('click', this._draw.bind(this));
           this.$.eraser.addEventListener('click', this._erase.bind(this));
+          
           // change the paper swatch picker icon
           var paletteIcon = this.$.swatchPicker.shadowRoot.querySelector('#iconButton');
           paletteIcon.icon = "image:palette";
@@ -302,7 +303,8 @@ Example:
       _onGoto: function(evt) {
         this.ctx = this.ctx || this.$.canvas.getContext('2d');
         var id = evt.data.step || evt.data.id;
-        if (!this.printing && id != '0') {
+        if (id == '0') id = 'asq';
+        if (!this.printing) {
           // wait for all elements to be loaded
           if (document.readyState !== 'complete') {
             window.addEventListener('load', function(){
@@ -330,13 +332,13 @@ Example:
       },
 
       _onMousedown: function(evt) {
-        var standardWidth = 1366;
-        var standardHeight = 768;
-        this._setDrawingProperties({ lineWidth: this.$.lineWidthSlider.value, updateLastXY : true, pageX : evt.pageX, pageY : evt.pageY, isDrawing : true });
-
         if (this.activeTool == "pen") {
           this.drawingColor = this.$.swatchPicker.color || this.drawingColor;
         }
+
+        var standardWidth = 1366;
+        var standardHeight = 768;
+        this._setDrawingProperties({ lineWidth: this.$.lineWidthSlider.value, updateLastXY : true, pageX : evt.pageX, pageY : evt.pageY, isDrawing : true });
 
         this.drawings[this.lastStep] = this.drawings[this.lastStep] || [];
 
@@ -364,6 +366,19 @@ Example:
       _onMouseup: function(evt) {
         this.isDrawing = false;
         this._emitSaveDrawingsEvent(this.drawings);
+      },
+
+      // touch events
+      _onTouchstart: function(evt) {
+        evt.preventDefault();
+      },
+
+      _onTouchmove: function(evt) {
+        evt.preventDefault();
+      },
+
+      _onTouchend: function(evt) {
+        evt.preventDefault();
       },
 
       _emitClearToEvent: function(){
@@ -591,11 +606,13 @@ Example:
       },
 
       _menuToggle: function(evt) {
-        if (this.$.burger.icon == 'menu') {
+        if (this.$.burger.icon != 'clear') {
           this.$.mainMenuBtns.classList.remove('BtnHide');
           this.$.mainMenuBtns.classList.add('showMenuBtns');
           this.$.burger.style.transform = 'rotate(360deg)';
-          setTimeout(function() { this.icon = 'clear' }.bind(this.$.burger), 1);
+          setTimeout(function() {
+            this.icon = 'clear';
+          }.bind(this.$.burger), 1);
         }
         else {
           this.isInteractive = false;
@@ -609,7 +626,9 @@ Example:
           this.$.mainMenuBtns.classList.add('BtnHide');
           this.$.mainMenuBtns.classList.remove('showMenuBtns');
           this.$.burger.style.transform = 'rotate(0deg)';
-          setTimeout(function() { this.icon = 'menu' }.bind(this.$.burger), 1);
+          setTimeout(function() {
+            this.icon = '';
+           }.bind(this.$.burger), 1);
         }
       },
 

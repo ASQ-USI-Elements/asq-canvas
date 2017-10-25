@@ -117,7 +117,7 @@
 
       data.forEach(function(drawStep) {
         var lineWidth = this._getLineWidth(drawStep.lineWidth, drawStep.slideWidth, drawStep.slideHeight, this.slideWidth, this.slideHeight);
-        this._setDrawingProperties( { gCO : drawStep.gCO, drawingColor : drawStep.drawingColor });
+        this._setDrawingProperties( { gCO : drawStep.gCO, drawingColor : drawStep.drawingColor }, ctx);
 
         var x1 = this._computeCoordinate(drawStep.mouseX, drawStep.slideWidth, this.slideWidth, drawStep.sMX, this.sMX);
         var y1 = this._computeCoordinate(drawStep.mouseY, drawStep.slideHeight, this.slideHeight, drawStep.sMY, this.sMY);
@@ -134,7 +134,7 @@
             break;
         }
 
-        this._setDrawingProperties({ updateLastXY : true, drawingColor : prevColor, gCO : prevGCO });
+        this._setDrawingProperties({ updateLastXY : true, drawingColor : prevColor, gCO : prevGCO }, ctx);
 
       }.bind(this));
     },
@@ -170,7 +170,7 @@
       }
     },
 
-    _setDrawingProperties: function(drawProps) {
+    _setDrawingProperties: function(drawProps, ctx) {
       this.activeCanvas = drawProps.activeCanvas || this.activeCanvas;
       this.activeTool = drawProps.activeTool || this.activeTool;
       this.drawingColor = drawProps.drawingColor || this.drawingColor;
@@ -180,10 +180,12 @@
       this.lastX = (drawProps.updateLastXY)? this.mouseX : this.lastX;
       this.lastY = (drawProps.updateLastXY)? this.mouseY : this.lastY;
       this.lineWidth = drawProps.lineWidth || this.lineWidth;
-      this.ctx.globalCompositeOperation = drawProps.gCO || this.ctx.globalCompositeOperation;
 
-      this.ctx.fillStyle = this.drawingColor;
-      this.ctx.strokeStyle = this.drawingColor;
+      let context = ctx || this.ctx
+      context.globalCompositeOperation = drawProps.gCO || this.ctx.globalCompositeOperation;
+
+      context.fillStyle = this.drawingColor;
+      context.strokeStyle = this.drawingColor;
     },
 
     _setSlideProperties: function(id) {
