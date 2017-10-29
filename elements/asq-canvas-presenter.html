@@ -28,6 +28,16 @@ Example:
 
     <style include="asq-canvas-style"></style>
 
+    <!-- ASQ Logo top right -->
+    <style is="custom-style">
+      .logo-shown::shadow iron-icon {
+        width: 80px;
+        height: 80px;
+        position: relative;
+        bottom: 28px;
+      }
+    </style>
+
     <canvas id="canvas" on-mousemove="_onMousemove" on-mousedown="_onMousedown" on-mouseup="_onMouseup" on-touchstart="_onTouchstart" on-touchmove="_onTouchmove" on-touchend-="_onTouchend"></canvas>
 
     <div id="menu">
