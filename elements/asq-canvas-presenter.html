@@ -31,7 +31,7 @@ Example:
     <canvas id="canvas" on-mousemove="_onMousemove" on-mousedown="_onMousedown" on-mouseup="_onMouseup" on-touchstart="_onTouchstart" on-touchmove="_onTouchmove" on-touchend-="_onTouchend"></canvas>
 
     <div id="menu">
-      <paper-icon-button id="burger" class="menuBtn logo-shown" icon="asq:a"></paper-icon-button>
+      <paper-icon-button id="burger" class="menuBtn logo-shown" icon="asq:asq"></paper-icon-button>
 
       <div id="mainMenuBtns">
         <a href="/" target="_blank"><paper-icon-button id="home" class="menuBtn" icon="home"></paper-icon-button></a>
@@ -630,7 +630,7 @@ Example:
           this.$.mainMenuBtns.classList.remove('showMenuBtns');
           this.$.burger.style.transform = 'rotate(0deg)';
           setTimeout(function() {
-            this.icon = 'asq:a';
+            this.icon = 'asq:asq';
            }.bind(this.$.burger), 1);
         }
       },
