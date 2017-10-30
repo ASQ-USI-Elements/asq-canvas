@@ -1,6 +1,6 @@
 {
   "name": "asq-canvas",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "ASQ canvas element to shares what the presenter is drawing on the screen with the viewers",
   "main": "index.js",
   "repository": {
