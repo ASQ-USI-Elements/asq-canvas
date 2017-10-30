@@ -314,7 +314,6 @@ Example:
       _onGoto: function(evt) {
         this.ctx = this.ctx || this.$.canvas.getContext('2d');
         var id = evt.data.step || evt.data.id;
-        if (id == '0') id = 'asq';
         if (!this.printing) {
           // wait for all elements to be loaded
           if (document.readyState !== 'complete') {
@@ -335,7 +334,9 @@ Example:
           this.lastStep = id;
         }
 
-        this.drawings[this.lastStep] = this.drawings[this.lastStep] || [];
+        if (document.querySelector('#' + this.lastStep)) {
+          this.drawings[this.lastStep] = this.drawings[this.lastStep] || [];
+        }
 
         this.lastStep = id;
 
