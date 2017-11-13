@@ -30,18 +30,12 @@ Example:
 
     <!-- ASQ Logo top right -->
     <style is="custom-style">
-      .logo-shown::shadow iron-icon {
-        width: 80px;
-        height: 80px;
-        position: relative;
-        bottom: 28px;
-      }
     </style>
 
     <canvas id="canvas" on-mousemove="_onMousemove" on-mousedown="_onMousedown" on-mouseup="_onMouseup" on-touchstart="_onTouchstart" on-touchmove="_onTouchmove" on-touchend-="_onTouchend"></canvas>
 
     <div id="menu">
-      <paper-icon-button id="burger" class="menuBtn logo-shown" icon="asq:asq"></paper-icon-button>
+      <paper-icon-button id="burger" class="menuBtn logo-shown" icon="menu" on-tap="_menuToggle"></paper-icon-button>
 
       <div id="mainMenuBtns">
         <a href="/" target="_blank"><paper-icon-button id="home" class="menuBtn" icon="home"></paper-icon-button></a>
@@ -52,6 +46,9 @@ Example:
 
         <paper-icon-button id="drawingTools" class="menuBtn" icon="image:brush" noink></paper-icon-button>
         <div class="menuDesc hidden" style="margin-top: 85px;">Drawing Menu</div>
+
+        <a href="[[ _cockpitUrl() ]]" target="_blank"><paper-icon-button id="cockpit" class="menuBtn" icon="dashboard" noink></paper-icon-button></a>
+        <div class="menuDesc hidden" style="margin-top: 125px">Dashboard</div>
       </div>
 
       <div id="slideUtilsBtns">
@@ -168,8 +165,6 @@ Example:
       ready: function() {
         // menu event listeners
         if (!this.printing) {
-          this.$.burger.addEventListener('mouseover', this._menuToggle.bind(this));
-          this.$.burger.addEventListener('click', this._menuToggle.bind(this));
 
           this.$.home.addEventListener('mouseover', this._menuBtnHover.bind(this));
           this.$.home.addEventListener('mouseout', this._menuBtnLeave.bind(this));
@@ -179,6 +174,8 @@ Example:
           this.$.drawingTools.addEventListener('mouseover', this._menuBtnHover.bind(this));
           this.$.drawingTools.addEventListener('mouseout', this._menuBtnLeave.bind(this));
           this.$.drawingTools.addEventListener('click', this._openSubMenu.bind(this));
+          this.$.cockpit.addEventListener('mouseover', this._menuBtnHover.bind(this));
+          this.$.cockpit.addEventListener('mouseout', this._menuBtnLeave.bind(this));
 
           // slide utils menu
           this.$.addSlide.addEventListener('mouseover', this._menuBtnHover.bind(this));
@@ -641,18 +638,18 @@ Example:
           this.$.mainMenuBtns.classList.remove('showMenuBtns');
           this.$.burger.style.transform = 'rotate(0deg)';
           setTimeout(function() {
-            this.icon = 'asq:asq';
+            this.icon = 'menu';
            }.bind(this.$.burger), 1);
         }
       },
 
       _menuBtnHover: function(evt) {
-        var hoveredEl = (evt.target.id != 'home')? evt.target : evt.target.parentNode;
+        var hoveredEl = (evt.target.id != 'home' && evt.target.id != 'cockpit')? evt.target : evt.target.parentNode;
         hoveredEl.nextSibling.nextSibling.classList.remove('hidden');
       },
 
       _menuBtnLeave: function(evt) {
-        var hoveredEl = (evt.target.id != 'home')? evt.target : evt.target.parentNode;
+        var hoveredEl = (evt.target.id != 'home' && evt.target.id != 'cockpit')? evt.target : evt.target.parentNode;
         hoveredEl.nextSibling.nextSibling.classList.add('hidden');
       },
 
@@ -680,6 +677,10 @@ Example:
           this.activeCanvas = true;
           this.$.pen.click();
         }
+      },
+
+      _cockpitUrl: function() {
+        return `${window.location.pathname}cockpit`;
       },
 
     });
