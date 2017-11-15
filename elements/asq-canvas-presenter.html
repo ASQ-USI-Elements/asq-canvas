@@ -94,6 +94,8 @@ Example:
         <paper-icon-button id="download" class="subMenuBtn" icon="file-download" on-click="_downloadCurrentCanvas"></paper-icon-button>
         <div class="menuDesc subMenuDesc hidden" style="margin-top: 79px; width: 98px;">Download current drawing</div>
 
+        <paper-icon-button id="eraseAll" class="subMenuBtn" icon="delete"></paper-icon-button>
+        <div class="menuDesc subMenuDesc hidden secondRow" style="margin-top: 79px;">Erase everything</div>
       </div>
     </div>
 
@@ -203,16 +205,26 @@ Example:
           // drawings menu
           this.$.swatchPicker.addEventListener('mouseover', this._menuBtnHover.bind(this));
           this.$.swatchPicker.addEventListener('mouseout', this._menuBtnLeave.bind(this));
+
           this.$.pen.addEventListener('mouseover', this._menuBtnHover.bind(this));
           this.$.pen.addEventListener('mouseout', this._menuBtnLeave.bind(this));
+
           this.$.sizeSlider.addEventListener('mouseover', this._menuBtnHover.bind(this));
           this.$.sizeSlider.addEventListener('mouseout', this._menuBtnLeave.bind(this));
+
           this.$.eraser.addEventListener('mouseover', this._menuBtnHover.bind(this));
           this.$.eraser.addEventListener('mouseout', this._menuBtnLeave.bind(this));
+
+
           this.$.download.addEventListener('mouseover', this._menuBtnHover.bind(this));
           this.$.download.addEventListener('mouseout', this._menuBtnLeave.bind(this));
+
+          this.$.eraseAll.addEventListener('mouseover', this._menuBtnHover.bind(this));
+          this.$.eraseAll.addEventListener('mouseout', this._menuBtnLeave.bind(this));
+
           this.$.pen.addEventListener('click', this._draw.bind(this));
           this.$.eraser.addEventListener('click', this._erase.bind(this));
+          this.$.eraseAll.addEventListener('click', this._deleteDrawings.bind(this));
 
           // change the paper swatch picker icon
           var paletteIcon = this.$.swatchPicker.shadowRoot.querySelector('#iconButton');
@@ -528,8 +540,7 @@ Example:
       },
 
       _changeDrawingOnGoto: function(id) {
-        this._clearTo();
-        this._emitClearToEvent();
+        this._clearCanvas();
 
         if (document.querySelector('.reveal')) {
           if (this.drawings[id]) {
@@ -572,6 +583,11 @@ Example:
         this._setDrawingProperties({ drawingColor : 'rgba(0,0,0,1)', gCO : 'destination-out'});
       },
 
+      _clearCanvas() {
+        this._clearTo();
+        this._emitClearToEvent();
+      },
+
       _indexOfSlide: function(slide) {
         var children = slide.parentNode.children;
         var num = 0;
@@ -580,6 +596,12 @@ Example:
           if (children[i].nodeType == 1) num++;
         }
         return -1;
+      },
+
+      _deleteDrawings() {
+        this._clearCanvas();
+        this.drawings[this.lastStep] = [];
+        this._emitSaveDrawingsEvent(this.drawings);
       },
 
       _idGenerator: function() {
