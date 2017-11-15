@@ -30,9 +30,24 @@ Example:
 
     <!-- ASQ Logo top right -->
     <style is="custom-style">
+    #powered-by{
+      position: absolute;
+      bottom: -11px;
+      right: 5px;
+      font-size: 0.75em;
+    }
+    #asq-logo-link {
+      color: black;
+    }
+    #asq-logo-link iron-icon {    
+       width: 60px;    
+       height: 60px;     
+    }
     </style>
 
     <canvas id="canvas" on-mousemove="_onMousemove" on-mousedown="_onMousedown" on-mouseup="_onMouseup" on-touchstart="_onTouchstart" on-touchmove="_onTouchmove" on-touchend-="_onTouchend"></canvas>
+
+    <div id="powered-by">Powered by <a id="asq-logo-link" href="/"><iron-icon icon="asq:asq"></iron-icon></a></div>
 
     <div id="menu">
       <paper-icon-button id="burger" class="menuBtn logo-shown" icon="menu" on-tap="_menuToggle"></paper-icon-button>
