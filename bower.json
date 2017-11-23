@@ -14,10 +14,12 @@
   "dependencies": {
     "asq-base": "ASQ-USI-Elements/asq-base#master",
     "iron-flex-layout": "PolymerElements/iron-flex-layout#^1.3.1",
-    "polymer": "Polymer/Polymer#^1.4.0",
+    "iron-icon": "^1.0.13",
+    "paper-dialog": "PolymerElements/paper-dialog#1.1.0",
+    "paper-slider": "PolymerElements/paper-slider#1.0.15",
     "paper-swatch-picker": "PolymerElements/paper-swatch-picker#1.0.2",
-    "paper-styles": "^1.3.1",
-    "iron-icon": "^1.0.13"
+    "polymer": "Polymer/Polymer#^1.4.0",
+    "paper-tooltip": "PolymerElements/paper-tooltip#1.1.4"
   },
   "ignore": [
     "index.js",

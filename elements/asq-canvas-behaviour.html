@@ -53,6 +53,24 @@
       }
     },
 
+    _getPresentationFramework() {
+      if(
+        (document.body 
+          && (document.body.classList.contains('impress-supported') 
+            || document.body.classList.contains('impress-supported')
+          ))
+        || document.getElementById('impress') !== undefined
+        || document.querySelector('step')!== undefined
+        ){
+        return 'impress.js'
+      }else if(document.querySelector('.revel > .slides') !== undefined ){
+        return 'reveal.js'
+      }
+      else{
+        return undefined;
+      }
+    },
+
     _clearTo: function() {
       this.ctx.clearRect(0, 0, this.$.canvas.width, this.$.canvas.height);
     },
