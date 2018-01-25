@@ -57,13 +57,13 @@
       if(
         (document.body 
           && (document.body.classList.contains('impress-supported') 
-            || document.body.classList.contains('impress-supported')
+            || document.body.classList.contains('impress-enabled')
           ))
-        || document.getElementById('impress') !== undefined
-        || document.querySelector('step')!== undefined
+        || document.getElementById('impress') !== null
+        || document.querySelector('.step')!== null
         ){
         return 'impress.js'
-      }else if(document.querySelector('.revel > .slides') !== undefined ){
+      }else if(document.querySelector('.revel > .slides') !== null ){
         return 'reveal.js'
       }
       else{
@@ -215,16 +215,22 @@
       }
       else {
 
+        var pFramework = this._getPresentationFramework();
+
         // we are in a fragment of Reveal, the height has to be calculated differently here
-        if (document.querySelector('.reveal') && document.querySelector('.present').getBoundingClientRect().height == 0) {
+        if (pFramework === 'reveal.js'){
+          //(document.querySelector('.reveal') && document.querySelector('.present').getBoundingClientRect().height == 0) {
           this.currentSlide = document.querySelector('.present > .present');
           this.slideHeight = this.currentSlide.getBoundingClientRect().height;
         }
         // a normal slide
-        else {
+        else if(pFramework === 'impress.js') {
           this.currentSlide = document.querySelector('.present');
           this.slideHeight = document.body.offsetHeight - this.currentSlide.getBoundingClientRect().top
           - (document.body.offsetHeight - this.currentSlide.getBoundingClientRect().bottom);
+        }else{
+          this.currentSlide = this;
+          this.slideHeight = this.offsetHeight;
         }
       }
 

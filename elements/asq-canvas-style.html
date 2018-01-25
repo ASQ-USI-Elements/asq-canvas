@@ -200,29 +200,24 @@
       paper-icon-button.menuBtn {
         margin-top: 10px;
         color: rgb(72, 72, 72);
-/*        color: transparent;*/
       }
 
       #mainMenuBtns .menuBtn {
         margin-top: 0px;
       }
 
-      .subMenuBtn, #swatchPicker::shadow paper-menu-button paper-icon-button {
+      .subMenuBtn,
+      #swatchPicker {
         height: 0px;
         opacity: 0;
         transition: 200ms;
         pointer-events: none;
       }
 
-      .showSubMenuBtns .subMenuBtn, .showSubMenuBtns #swatchPicker::shadow paper-menu-button paper-icon-button {
-        height: 40px;
+      .showSubMenuBtns .subMenuBtn,
+      .showSubMenuBtns #swatchPicker {
+        height: auto;
         opacity: 1;
-        transition: 200ms;
-      }
-
-      #slideUtilsBtns.showSubMenuBtns .subMenuBtn,
-      #drawingBtns.showSubMenuBtns .subMenuBtn,
-      .showSubMenuBtns #swatchPicker::shadow paper-menu-button paper-icon-button {
         pointer-events: auto;
       }
 
