@@ -53,7 +53,7 @@
       }
     },
 
-    _getPresentationFramework() {
+    _getPresentationFramework: function() {
       if(
         (document.body 
           && (document.body.classList.contains('impress-supported') 
@@ -69,6 +69,10 @@
       else{
         return undefined;
       }
+    },
+
+    _isInRevealFragment: function(){
+      return  document.querySelector('.reveal .present > .present') !== null;
     },
 
     _clearTo: function() {
@@ -217,18 +221,23 @@
 
         var pFramework = this._getPresentationFramework();
 
-        // we are in a fragment of Reveal, the height has to be calculated differently here
-        if (pFramework === 'reveal.js'){
-          //(document.querySelector('.reveal') && document.querySelector('.present').getBoundingClientRect().height == 0) {
-          this.currentSlide = document.querySelector('.present > .present');
-          this.slideHeight = this.currentSlide.getBoundingClientRect().height;
+        if(pFramework === 'impress.js'
+                  || pFramework === 'reveal.js'){
+
+          // we are in a fragment of Reveal, the height has to be calculated differently here
+          if (this._isInRevealFragment()){
+            this.currentSlide = document.querySelector('.present > .present');
+            this.slideHeight = this.currentSlide.getBoundingClientRect().height;
+          }
+          // a normal slide
+          else {
+            this.currentSlide = document.querySelector('.present');
+            this.slideHeight = document.body.offsetHeight - this.currentSlide.getBoundingClientRect().top
+            - (document.body.offsetHeight - this.currentSlide.getBoundingClientRect().bottom);
+          }
         }
-        // a normal slide
-        else if(pFramework === 'impress.js') {
-          this.currentSlide = document.querySelector('.present');
-          this.slideHeight = document.body.offsetHeight - this.currentSlide.getBoundingClientRect().top
-          - (document.body.offsetHeight - this.currentSlide.getBoundingClientRect().bottom);
-        }else{
+        //standalone
+        else{
           this.currentSlide = this;
           this.slideHeight = this.offsetHeight;
         }
