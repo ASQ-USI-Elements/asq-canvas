@@ -51,7 +51,7 @@ Example:
     }
     </style>
 
-    <canvas id="canvas" on-mousemove="_onMousemove" on-mousedown="_onMousedown" on-mouseup="_onMouseup" on-touchstart="_onTouchstart" on-touchmove="_onTouchmove" on-touchend-="_onTouchend"></canvas>
+    <canvas id="canvas" on-mousemove="_onMousemove" on-mousedown="_onMousedown" on-mouseup="_onMouseup" on-touchstart="_onMousedown" on-touchmove="_onMousemove" on-touchend-="_onMouseup"></canvas>
 
     <div id="powered-by">Powered by <a id="asq-logo-link" href="/"><iron-icon icon="asq:asq"></iron-icon></a></div>
 
@@ -346,14 +346,38 @@ Example:
         this._changeDrawingOnGoto(id);
       },
 
-      _onMousedown: function(evt) {
+      getPageCoords: function(e){
+        // touch event
+        if(e.touches && e.touches[0]) {
+          return {
+            pageX : e.touches[0].pageX,
+            pageY : e.touches[0].pageY
+          }
+        }
+
+        // mousevent
+        return {
+          pageX : e.pageX,
+          pageY : e.pageY
+        }
+      },
+
+      _onMousedown: function(e) {
         if (this.activeTool == 'pen') {
           this.drawingColor = this.$.swatchPicker.color || this.drawingColor;
         }
 
         var standardWidth = 1366;
         var standardHeight = 768;
-        this._setDrawingProperties({ lineWidth: this.$.lineWidthSlider.value, updateLastXY : true, pageX : evt.pageX, pageY : evt.pageY, isDrawing : true });
+
+        var normalizedPageObj = this.getPageCoords(e);
+
+        this._setDrawingProperties({ lineWidth: this.$.lineWidthSlider.value,
+          updateLastXY : true,
+          pageX : normalizedPageObj.pageX,
+          pageY : normalizedPageObj.pageY,
+          isDrawing : true
+        });
 
         this.drawings[this.lastStep] = this.drawings[this.lastStep] || [];
 
@@ -364,11 +388,23 @@ Example:
 
       // bind mouse events
       _onMousemove: function(e) {
+        // prevent scrolling for touch devices
+        // https://stackoverflow.com/questions/16348031/disable-scrolling-when-touch-moving-certain-element
+        if(e.touches){
+          e.preventDefault();
+        }
+
         var standardWidth = 1366;
         var standardHeight = 768;
 
         if (!this.isDrawing) return;
-        this._setDrawingProperties({ pageX : e.pageX, pageY : e.pageY });
+
+        var normalizedPageObj = this.getPageCoords(e);
+
+        this._setDrawingProperties({ 
+          pageX : normalizedPageObj.pageX,
+          pageY : normalizedPageObj.pageY
+        });
 
         this._drawLine(null, this.mouseX, this.mouseY, this.lastX, this.lastY, this.lineWidth  * (window.innerWidth * window.innerHeight) / (standardWidth * standardHeight));
         this._emitFillEvent('line')
@@ -378,22 +414,9 @@ Example:
         this._setDrawingProperties({ updateLastXY : true });
       },
 
-      _onMouseup: function(evt) {
+      _onMouseup: function(e) {
         this.isDrawing = false;
         this._emitSaveDrawingsEvent(this.drawings);
-      },
-
-      // touch events
-      _onTouchstart: function(evt) {
-        evt.preventDefault();
-      },
-
-      _onTouchmove: function(evt) {
-        evt.preventDefault();
-      },
-
-      _onTouchend: function(evt) {
-        evt.preventDefault();
       },
 
       _emitClearToEvent: function(){
