@@ -683,7 +683,14 @@ Example:
       },
 
       _printSlides: function() {
-        window.location.search = window.location.search + '&print-pdf';
+        // only add print-pdf if it doesn't exist already
+        var isPrinting = ( /print-pdf/gi ).test( window.location.search );
+        if(! isPrinting){
+          prefix = window.location.search === ''
+            ? ''
+            : '&'
+           window.location.search = window.location.search + prefix + 'print-pdf';
+        }
       },
 
       _openSubMenu: function(evt) {
