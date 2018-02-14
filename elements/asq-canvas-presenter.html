@@ -51,7 +51,7 @@ Example:
     }
     </style>
 
-    <canvas id="canvas" on-mousemove="_onMousemove" on-mousedown="_onMousedown" on-mouseup="_onMouseup" on-touchstart="_onMousedown" on-touchmove="_onMousemove" on-touchend-="_onMouseup"></canvas>
+    <canvas id="canvas" on-mousemove="_onMousemove" on-mousedown="_onMousedown" on-mouseup="_onMouseup" on-touchstart="_onMousedown" on-touchmove="_onMousemove" on-touchend="_onMouseup"></canvas>
 
     <div id="powered-by">Powered by <a id="asq-logo-link" href="/"><iron-icon icon="asq:asq"></iron-icon></a></div>
 
@@ -388,6 +388,8 @@ Example:
 
       // bind mouse events
       _onMousemove: function(e) {
+        if(! this.isDrawing) return;
+        
         // prevent scrolling for touch devices
         // https://stackoverflow.com/questions/16348031/disable-scrolling-when-touch-moving-certain-element
         if(e.touches){
