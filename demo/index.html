@@ -3,21 +3,28 @@
 <head>
   <meta name="asq-elements" content="width=device-width, initial-scale=1, user-scalable=no">
 
-  <title>asq-text-input-q | Demo</title>
+  <title>asq-canvas | Demo</title>
 
-  <script src="../../webcomponentsjs/webcomponents.js"></script>
+  <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
+  <script>
+     /* this script must run before Polymer is imported */
+     window.Polymer = {
+       dom: 'shadow',
+       lazyRegister: true
+     };
+   </script>
 
   <link href="../asq-canvas.html" rel="import">
 
-  <style shim-shadowdom>
+  <style>
     body{
       font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
     }
 
     asq-canvas {
       border: 1px dashed gray;
-      width: 300px;
-      height: 200px;
+      width: 800px;
+      height: 600px;
     }
 
   </style>
@@ -25,8 +32,9 @@
 </head>
 <body>
 
-  <h4>Presenter</h4>
-  <p>Press `c` to draw. Press `c` again to clear canvas.</p>
+  <h4 style="margin-top: 80px;"">Presenter</h4>
+  <p>Press `control` and `d` to draw. <br>
+    Press `control` and `d` again to clear canvas.</p>
   <asq-canvas role="presenter"></asq-canvas>
 
 

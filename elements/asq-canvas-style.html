@@ -1,0 +1,273 @@
+<link rel="import" href="../../iron-flex-layout/iron-flex-layout.html">
+
+<dom-module id="asq-canvas-style">
+  <template>
+    <style>
+      /*________________________________CANVAS________________________________*/
+      :host {
+        @apply(--layout-vertical);
+        @apply(--layout-flex);
+        --paper-swatch-picker-color-size: 10px;
+
+        --paper-tooltip:{
+          color: #e4e4e4;
+          border-radius: 3px;
+          background-color: rgb(72, 72, 72);
+          box-shadow: 0 0 1px black;
+          text-align: center;
+          font-size: 12px;
+          font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+          letter-spacing: 0.5px;
+        };
+      }
+
+      #canvas{
+        width: 100%;
+        @apply(--layout-flex);
+        cursor: crosshair;
+      }
+
+      #canvas:active {
+        cursor: crosshair;
+      }
+
+      /* ________________________________MENU_________________________________*/
+
+      /*___________________Dialogs */
+      #addSlideDialog, #changeLineWidthDialog {
+        position: absolute;
+        left: 105px;
+        top: 6px;
+        margin: 0;
+        width: 180px;
+        height: 100px;
+        text-align: center;
+        pointer-events: auto;
+      }
+
+      #addSlideDialog .buttons {
+        padding: 0;
+        font-size: 12px;
+        font-weight: bolder;
+        line-height: 12px;
+      }
+
+      #addSlideDialog h2, #changeLineWidthDialog h2 {
+        font-size: 21px;
+        line-height: 20px;
+        padding: 0 0 9px 0;
+        margin-top: 20px;
+      }
+
+      #widthSlider {
+        margin-top: 0 !important;
+        padding: 0;
+      }
+
+      #widthSlider paper-slider {
+        display: block;
+        width: 150px;
+        margin-top: -8px;
+        padding-left: 17px;
+      }
+
+      #widthSlider paper-slider::shadow #sliderContainer {
+        margin: 0;
+      }
+
+      #widthSlider paper-slider::shadow .slider-input {
+        position: absolute;
+        bottom: 0px;
+        right: 14px;
+      }
+
+      #changeLineWidthDialog h2 {
+        font-size: 17px;
+      }
+
+      /*___________________Menu Container */
+      #menu {
+        transition: 200ms ease-out;
+        position: absolute;
+        top: 0;
+        pointer-events: auto;
+      }
+
+      /*___________________Menu Buttons */
+      .logo-shown {
+        box-shadow: 0px 0px 0px !important;
+        background-color: rgba(255, 255, 255, 0) !important;
+      }
+
+
+      .active-tool {
+        background-color: #dedede;
+        border-radius: 100px;
+      }
+
+      .active-tool2 {
+        background-color: #dedede;
+      }
+
+      .active-tool3 {
+        background-color: #dedede;
+        border-radius: 0px 0px 100px 100px;
+      }
+
+      #burger {
+        left: 10px;
+        z-index: 2;
+        pointer-events: auto;
+        background-color: white;
+        border-radius: 100px;
+        transition: 400ms ease-out;
+        box-shadow: 0px 0px 1px black;
+      }
+
+      #mainMenuBtns {
+        position: absolute;
+        top: 30px;
+        left: 10px;
+        width: 40px;
+        height: 0;
+        text-align: center;
+        transition: 200ms ease-out;
+        /*transition-delay: 200ms;*/
+        background-color: white;
+        border-radius: 0px 0px 20px 20px;
+        box-shadow: 0px 0px 1px black;
+      }
+      
+      #mainMenuBtns > .menuEntry{
+        opacity: 0;
+        /*height: 0px;*/
+        transition: opacity 100ms ease-out;
+        pointer-events: none;
+      }
+
+      #home {
+        margin-top: 25px !important;
+      }
+
+      #mainMenuBtns > a:nth-of-type(1){
+        transition-delay:  150ms;
+      }
+
+       #mainMenuBtns > paper-icon-button:nth-of-type(1){
+        transition-delay:  180ms;
+      }
+
+      #mainMenuBtns > paper-icon-button:nth-of-type(2) {
+        transition-delay:  210ms;
+      }
+
+      #mainMenuBtns >  a:nth-of-type(2) {
+        transition-delay:  240ms;
+      }
+
+
+      #mainMenuBtns.showMenuBtns {
+        height: 185px;
+      }
+
+      #mainMenuBtns.showMenuBtns > .menuEntry {
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      #mainMenuBtns.BtnHide{
+        transition: 200ms ease-out;
+        transition-delay: 200ms;
+      }
+
+      #mainMenuBtns.BtnHide > a:nth-of-type(1){
+        transition-delay:  150ms;
+      }
+
+       #mainMenuBtns.BtnHide > paper-icon-button:nth-of-type(1){
+        transition-delay:  100ms;
+      }
+
+      #mainMenuBtns.BtnHide > paper-icon-button:nth-of-type(2) {
+        transition-delay:  50ms;
+      }
+
+      #mainMenuBtns.BtnHide > a:nth-of-type(2) {
+        transition-delay:  0s;
+      }
+
+
+      paper-icon-button.menuBtn {
+        margin-top: 10px;
+        color: rgb(72, 72, 72);
+      }
+
+      #mainMenuBtns .menuBtn {
+        margin-top: 0px;
+      }
+
+      .subMenuBtn,
+      #swatchPicker {
+        height: 0px;
+        opacity: 0;
+        transition: 200ms;
+        pointer-events: none;
+      }
+
+      .showSubMenuBtns .subMenuBtn,
+      .showSubMenuBtns #swatchPicker {
+        height: auto;
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      .subMenuBtn {
+        color: rgb(72, 72, 72);
+      }
+
+/*      #slideUtilsBtns {
+        height: 0px;
+        background: white;
+        position: absolute;
+        top: 15px;
+        left: 51px;
+        width: 90px;
+      }*/
+
+      .secondLevelMenu{
+        width: 95px;
+        height:0px;
+        position: absolute;
+        background: white;
+        top: 15px;
+        left: 51px;
+      }
+
+      .secondLevelMenu.showSubMenuBtns {
+        height: auto;
+        z-index: 0;
+      }
+
+      #swatchPicker {
+        position: relative;
+        right: 6px;
+        display: inline-flex;
+        width: 40px;
+        margin: 0;
+        align-items: center;
+        padding: 0;
+      }
+
+      .secondRow {
+        margin-left: 40px;
+      }
+
+      #swatchPicker::shadow paper-listbox {
+        position: fixed;
+        left: 105px;
+        top: 6px;
+        box-shadow: 0 16px 24px 2px rgba(0, 0, 0, 0.14), 0 6px 30px 5px rgba(0, 0, 0, 0.12), 0 8px 10px -5px rgba(0, 0, 0, 0.4);
+      }
+    </style>
+  </template>
+</dom-module>

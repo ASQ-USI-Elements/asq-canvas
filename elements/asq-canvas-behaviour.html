@@ -1,0 +1,260 @@
+<script>
+  var ASQ = window.ASQ || {};
+
+  /**
+   * This mixin object shares canvas functionalities.
+   */
+   var canvasElementBehaviour = ASQ.canvasElementBehaviour = {
+
+    properties: {
+
+      /**
+       * The drawing color, default: black.
+       */
+      drawingColor: {
+        type: String,
+        value: "#000000",
+      },
+
+      /**
+       * Determine the size of the drawing.
+       */
+      lineWidth: {
+        type: Number,
+        value: 6,
+      },
+
+    },
+
+    attached: function() {
+      if (window.location.search.match(/print-pdf/gi)) this.printing = true;
+      if (document.readyState !== 'complete') {
+        window.addEventListener('load', function(){
+          this._attachedHandler();
+        }.bind(this));
+      }
+      else this._attachedHandler();
+    },
+
+    _attachedHandler: function() {
+      this.ctx = this.$.canvas.getContext('2d');
+      this._setDrawingProperties({ lastX : 0, lastY: 0 });
+
+      if (!this.printing) {
+
+        window.addEventListener('resize', this._resizeCanvas.bind(this), false);
+
+        if (this.initialResize) {
+          setTimeout(this._resizeCanvas, this.initialResize);
+        }
+        else {
+          setTimeout(this._resizeCanvas.bind(this), 1000);
+        }
+      }
+    },
+
+    _getPresentationFramework: function() {
+      if(
+        (document.body 
+          && (document.body.classList.contains('impress-supported') 
+            || document.body.classList.contains('impress-enabled')
+          ))
+        || document.getElementById('impress') !== null
+        || document.querySelector('.step')!== null
+        ){
+        return 'impress.js'
+      }else if(document.querySelector('.revel > .slides') !== null ){
+        return 'reveal.js'
+      }
+      else{
+        return undefined;
+      }
+    },
+
+    _isInRevealFragment: function(){
+      return  document.querySelector('.reveal .present > .present') !== null;
+    },
+
+    _clearTo: function() {
+      this.ctx.clearRect(0, 0, this.$.canvas.width, this.$.canvas.height);
+    },
+
+    _computeCoordinate: function(oCoordinate, oSize, cSize, oMP, cMP) {
+      return cMP + (oCoordinate - oMP) * (cSize/oSize);
+    },
+
+    _drawLine: function(ctx, x1, y1, x2, y2, lineWidth) {
+      this._drawOnCanvas(ctx, "line", x1, y1, lineWidth, x2, y2);
+    },
+
+    _drawCircle: function(ctx, x, y, lineWidth) {
+      this._drawOnCanvas(ctx, "circle", x, y, lineWidth);
+    },
+
+    _drawOnCanvas: function(ctx, form, x1, y1, lineWidth, x2, y2) {
+      var radius = lineWidth/2;
+      var context = ctx || this.ctx;
+
+      for (var i = 0; i < lineWidth * lineWidth; ++i) {
+        var currentX = i%lineWidth;
+        var currentY = Math.floor(i/lineWidth);
+
+        var canvasX1 = x1 - radius + currentX;
+        var canvasY1 = y1 - radius + currentY;
+
+        var canvasX2 = x2 - radius + currentX;
+        var canvasY2 = y2 - radius + currentY;
+
+        var hypotenuse = Math.sqrt(Math.pow(Math.abs(canvasX1 - x1), 2)
+                       + Math.pow(Math.abs(canvasY1 - y1), 2));
+
+        if ((radius >= 1)?  hypotenuse < radius : hypotenuse > radius) {
+          switch (form) {
+            case "circle":
+              context.fillRect(canvasX1, canvasY1, 1, 1);
+              break;
+
+            case "line":
+              context.beginPath();
+              context.moveTo(canvasX1, canvasY1);
+              context.lineTo(canvasX2, canvasY2);
+              context.stroke();
+              break;
+          }
+        }
+      }
+    },
+
+    _getLineWidth: function(oLineWidth, oWidth, oHeight, cWidth, cHeight) {
+      var standardWidth = 1366;
+      var standardHeight = 768;
+      var lineWidth = oLineWidth * (window.innerWidth * window.innerHeight) / (standardWidth * standardHeight);
+      if (this.printing) lineWidth = oLineWidth *  (standardWidth * standardHeight) / (document.body.offsetWidth * document.body.offsetHeight) * 0.8;
+      return lineWidth;
+    },
+
+    _loadImage: function(data, ctx) {
+      var prevColor = this.drawingColor || '#000';
+      var prevGCO = this.ctx.globalCompositeOperation || 'source-over';
+
+      data.forEach(function(drawStep) {
+        var lineWidth = this._getLineWidth(drawStep.lineWidth, drawStep.slideWidth, drawStep.slideHeight, this.slideWidth, this.slideHeight);
+        this._setDrawingProperties( { gCO : drawStep.gCO, drawingColor : drawStep.drawingColor }, ctx);
+
+        var x1 = this._computeCoordinate(drawStep.mouseX, drawStep.slideWidth, this.slideWidth, drawStep.sMX, this.sMX);
+        var y1 = this._computeCoordinate(drawStep.mouseY, drawStep.slideHeight, this.slideHeight, drawStep.sMY, this.sMY);
+
+        switch (drawStep.form) {
+          case "circle":
+            this._drawCircle(ctx, x1, y1, lineWidth, ctx);
+            break;
+
+          case "line":
+            var x2 = this._computeCoordinate(drawStep.lastX, drawStep.slideWidth, this.slideWidth, drawStep.sMX, this.sMX);
+            var y2 = this._computeCoordinate(drawStep.lastY, drawStep.slideHeight, this.slideHeight, drawStep.sMY, this.sMY);
+            this._drawLine(ctx, x1, y1, x2, y2, lineWidth, ctx);
+            break;
+        }
+
+        this._setDrawingProperties({ updateLastXY : true, drawingColor : prevColor, gCO : prevGCO }, ctx);
+
+      }.bind(this));
+    },
+
+    _resizeCanvas: function () {
+      if (!this.printing) {
+        var id = window.location.hash.substring(2) || '';
+        this._setSlideProperties(id);
+        var timeOutSet = false;
+        var resizeAnimation = setInterval(function(id) {
+          var id = window.location.hash.substring(2) || '';
+          this._setSlideProperties(id);
+          if (!this.printing) this._clearTo();
+          this.$.canvas.width = this.offsetWidth;
+          this.$.canvas.height = this.offsetHeight;
+
+          if (this.role == 'viewer') {
+            if (this.lastDrawing) this._loadImage(this.lastDrawing);
+          }
+          else if (this.printing && id) this._loadImage(this.drawings[id]);
+          else {
+            if (this.lastStep && this.drawings[this.lastStep]) this._loadImage(this.drawings[this.lastStep]);
+          }
+
+          if (!timeOutSet) {
+              setTimeout(function() {
+              clearInterval(resizeAnimation);
+            }, 3000);
+              timeOutSet = true;
+          }
+
+        }.bind(this), 100);
+      }
+    },
+
+    _setDrawingProperties: function(drawProps, ctx) {
+      this.activeCanvas = drawProps.activeCanvas || this.activeCanvas;
+      this.activeTool = drawProps.activeTool || this.activeTool;
+      this.drawingColor = drawProps.drawingColor || this.drawingColor;
+      this.isDrawing = drawProps.isDrawing || this.isDrawing;
+      this.mouseX = drawProps.pageX - this.offsetLeft || this.mouseX;
+      this.mouseY = drawProps.pageY - this.offsetTop || this.mouseY;
+      this.lastX = (drawProps.updateLastXY)? this.mouseX : this.lastX;
+      this.lastY = (drawProps.updateLastXY)? this.mouseY : this.lastY;
+      this.lineWidth = drawProps.lineWidth || this.lineWidth;
+
+      let context = ctx || this.ctx
+      context.globalCompositeOperation = drawProps.gCO || this.ctx.globalCompositeOperation;
+
+      context.fillStyle = this.drawingColor;
+      context.strokeStyle = this.drawingColor;
+    },
+
+    _setSlideProperties: function(id) {
+      // id is given, get the slide properties for the printing view
+      if (id) {
+        this.currentSlide = document.querySelector('#' + id);
+        this.slideHeight = document.body.offsetHeight - this.currentSlide.getBoundingClientRect().top
+        - (document.body.offsetHeight - this.currentSlide.getBoundingClientRect().bottom);
+      }
+      else {
+
+        var pFramework = this._getPresentationFramework();
+
+        if(pFramework === 'impress.js'
+                  || pFramework === 'reveal.js'){
+
+          // we are in a fragment of Reveal, the height has to be calculated differently here
+          if (this._isInRevealFragment()){
+            this.currentSlide = document.querySelector('.present > .present');
+            this.slideHeight = this.currentSlide.getBoundingClientRect().height;
+          }
+          // a normal slide
+          else {
+            this.currentSlide = document.querySelector('.present');
+            this.slideHeight = document.body.offsetHeight - this.currentSlide.getBoundingClientRect().top
+            - (document.body.offsetHeight - this.currentSlide.getBoundingClientRect().bottom);
+          }
+        }
+        //standalone
+        else{
+          this.currentSlide = this;
+          this.slideHeight = this.offsetHeight;
+        }
+      }
+
+      // get the width of the current slide
+      this.slideWidth = this.currentSlide.getBoundingClientRect().width;
+
+      // get the midpoint of the current slide
+      this.sMX = this.currentSlide.getBoundingClientRect().left + this.slideWidth/2;
+      this.sMY = this.currentSlide.getBoundingClientRect().top + this.slideHeight/2;
+      if (this.printing) this.sMX = this.slideWidth/2 + parseInt(document.defaultView.getComputedStyle(this.currentSlide, null).marginLeft);
+      if (this.printing) this.sMY = this.currentSlide.getBoundingClientRect().top - document.getElementById(id + 'Div').offsetTop + this.slideHeight/2;
+    },
+  };
+
+  var asqCanvasElementBehavior = ASQ.asqElementBehavior.slice(0);
+  asqCanvasElementBehavior.push(canvasElementBehaviour);
+  ASQ.asqCanvasElementBehavior = [asqCanvasElementBehavior];
+</script>

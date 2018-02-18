@@ -1,9 +1,20 @@
 <link rel="import" href="../../polymer/polymer.html">
-<link rel="import" href="../../iron-flex-layout/iron-flex-layout.html">
 <link rel="import" href="../../asq-base/asq-base.html">
+<link rel="import" href="../../paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../../paper-dialog/paper-dialog.html">
+<link rel="import" href="../../paper-swatch-picker/paper-swatch-picker.html">
+<link rel="import" href="../../paper-slider/paper-slider.html">
+<link rel="import" href="../../paper-tooltip/paper-tooltip.html">
+<link rel="import" href="../../iron-icons/iron-icons.html">
+<link rel="import" href="../../iron-icons/image-icons.html">
+<link rel="import" href="asq-canvas-behaviour.html">
+<link rel="import" href="asq-canvas-style.html">
+<link rel="import" href="asq-canvas-icons.html">
+<link rel="import" href="asq-icons.html">
+
 
 <!--
-`asq-canvas-presenter` provides the presenter view of `asq-text-input-q-stats`. 
+`asq-canvas-presenter` provides the presenter view of `asq-canvas`.
 
 Example:
 
@@ -12,270 +23,704 @@ Example:
 
 
 @element asq-canvas-presenter
-@demo demo/stats.html
+@demo demo/index.html
 @group ASQ Elements
-@blurb Element provides a stats for `asq-text-input-q` elements.
-@homepage http://github.com/ASQ-USI-Elements/asq-text-input-q
+@blurb Element provides a canvas for `asq-canvas` elements.
+@homepage http://github.com/ASQ-USI-Elements/asq-canvas
 -->
 <dom-module id="asq-canvas-presenter">
 
   <template>
 
-    <style>
-      :host {
-        @apply(--layout-vertical);
-        @apply(--layout-flex);
-      }
+    <style include="asq-canvas-style"></style>
 
-      #canvas{
-        width: 100%;
-        @apply(--layout-flex);
-        cursor: crosshair;
-      }
-
-      #canvas:active { 
-        cursor: crosshair;
-      }
-
+    <!-- ASQ Logo top right -->
+    <style is="custom-style">
+    #powered-by{
+      position: absolute;
+      bottom: -11px;
+      right: 5px;
+      font-size: 0.75em;
+    }
+    #asq-logo-link {
+      color: black;
+    }
+    #asq-logo-link iron-icon {    
+       width: 60px;    
+       height: 60px;     
+    }
     </style>
 
-  
-  <canvas id="canvas" on-mousemove="_onMousemove" on-mousedown="_onMousedown" on-mouseup="_onMouseup" on-mousewheel="_onMousewheel"></canvas>
+    <canvas id="canvas" on-mousemove="_onMousemove" on-mousedown="_onMousedown" on-mouseup="_onMouseup" on-touchstart="_onMousedown" on-touchmove="_onMousemove" on-touchend="_onMouseup"></canvas>
+
+    <div id="powered-by">Powered by <a id="asq-logo-link" href="/"><iron-icon icon="asq:asq"></iron-icon></a></div>
+
+    <div id="menu">
+      <paper-icon-button id="burger" class="menuBtn logo-shown" icon="menu" on-tap="_menuToggle"></paper-icon-button>
+
+      <div id="mainMenuBtns">
+        <a class="menuLink menuEntry" href="/" id="homeLink" target="_blank">
+          <paper-icon-button id="home" class="menuBtn" icon="home"></paper-icon-button>
+        </a>
+        <paper-tooltip for="homeLink" position="right">Presentation Overview</paper-tooltip>
+
+        <paper-icon-button id="utils"
+        class="menuBtn menuEntry"
+        icon="account-balance-wallet"
+        on-tap="_openSubMenu"
+        noink
+        ></paper-icon-button>
+        <paper-tooltip for="utils" position="right">Slide Utilities</paper-tooltip>
+
+        <paper-icon-button
+        id="drawingTools"
+        class="menuBtn menuEntry"
+        icon="image:brush"
+        on-tap="_openSubMenu"
+        noink></paper-icon-button>
+        <paper-tooltip for="drawingTools" position="right">Drawing Menu</paper-tooltip>
+
+        <a class="menuLink menuEntry" href="[[ _cockpitUrl() ]]" id="cockpitLink" target="_blank">
+          <paper-icon-button id="cockpit" class="menuBtn" icon="dashboard" noink></paper-icon-button>
+        </a>
+        <paper-tooltip for="cockpitLink" position="right">Cockpit Dashboard</paper-tooltip>
+      </div>
+
+      <div class="secondLevelMenu" id="slideUtilsBtns">
+        <paper-icon-button id="addSlide" class="subMenuBtn" icon="add" on-click="_openAddSlideDialog" style="bottom: 5px;"></paper-icon-button>
+        <paper-tooltip for="addSlide" position="right">New empty slide</paper-tooltip>
+
+        <paper-icon-button id="removeSlide" class="subMenuBtn" icon="remove" on-click="_removeSlide" style="bottom: 5px;"></paper-icon-button>
+        <paper-tooltip for="removeSlide" position="right">Remove current empty slide</paper-tooltip>
+
+        <paper-icon-button id="print" class="subMenuBtn" icon="print" on-click="_printSlides"></paper-icon-button>
+        <paper-tooltip for="print" position="right">Print presentation</paper-tooltip>
+
+      </div>
+
+      <div class="secondLevelMenu" id="drawingBtns">
+        <paper-swatch-picker id="swatchPicker" class="subMenuBtn" color="{{selectedColor}}" style="bottom: 5px;"></paper-swatch-picker>
+        <paper-tooltip for="swatchPicker" position="right">Change color</paper-tooltip>
+
+        <paper-icon-button id="pen" class="subMenuBtn active-tool" icon="create" on-tap="_draw" style="bottom: 5px;"></paper-icon-button>
+        <paper-tooltip for="pen" position="right">Draw</paper-tooltip>
+
+        <paper-icon-button id="sizeSlider" class="subMenuBtn" icon="image:lens" on-click="_openChangeLineWidthDialog"></paper-icon-button>
+        <paper-tooltip for="sizeSlider" position="right">Change line width</paper-tooltip>
+
+        <paper-icon-button id="eraser" class="subMenuBtn" icon="asq-canvas-icons:eraser" on-tap="_erase"></paper-icon-button>
+        <paper-tooltip for="eraser" position="right">Erase</paper-tooltip>
+
+        <paper-icon-button id="download" class="subMenuBtn" icon="file-download" on-click="_downloadCurrentCanvas"></paper-icon-button>
+        <paper-tooltip for="download" position="right">Download current drawing</paper-tooltip>
+
+        <paper-icon-button id="eraseAll" class="subMenuBtn" icon="delete" on-tap="_deleteDrawings"></paper-icon-button>
+        <paper-tooltip for="eraseAll" position="right">Erase everything</paper-tooltip>
+      </div>
+    </div>
+
+    <paper-dialog id="addSlideDialog">
+      <h2>Add a new slide</h2>
+      <div class="buttons">
+        <paper-button on-click="_addSlideAfterCurrentSlide">after current slide</paper-button>
+        <paper-button on-click="_addSlideAtEnd">at the end</paper-button>
+      </div>
+    </paper-dialog>
+
+    <paper-dialog id="changeLineWidthDialog">
+      <h2>Change the line width</h2>
+      <div id="widthSlider">
+        <paper-slider id="lineWidthSlider" value="[[lineWidth]]" min="1" max="50" editable></paper-slider>
+      </div>
+    </paper-dialog>
 
   </template>
 </dom-module>
 <script>
   (function() {
 
-    function rainbow(numOfSteps, step) {
-        // This function generates vibrant, "evenly spaced" colours (i.e. no clustering). This is ideal for creating easily distinguishable vibrant markers in Google Maps and other apps.
-        // Adam Cole, 2011-Sept-14
-        // HSV to RBG adapted from: http://mjijackson.com/2008/02/rgb-to-hsl-and-rgb-to-hsv-color-model-conversion-algorithms-in-javascript
-        var r, g, b;
-        var h = step / numOfSteps;
-        var i = ~~(h * 6);
-        var f = h * 6 - i;
-        var q = 1 - f;
-        switch(i % 6){
-            case 0: r = 1, g = f, b = 0; break;
-            case 1: r = q, g = 1, b = 0; break;
-            case 2: r = 0, g = 1, b = f; break;
-            case 3: r = 0, g = q, b = 1; break;
-            case 4: r = f, g = 0, b = 1; break;
-            case 5: r = 1, g = 0, b = q; break;
-        }
-        var c = "#" + ("00" + (~ ~(r * 255)).toString(16)).slice(-2) + ("00" + (~ ~(g * 255)).toString(16)).slice(-2) + ("00" + (~ ~(b * 255)).toString(16)).slice(-2);
-        return (c);
-    }
-  
     Polymer({
 
       is: 'asq-canvas-presenter',
-      behaviors: [ASQ.asqElementBehavior],
+      behaviors: [ASQ.asqCanvasElementBehavior],
 
       properties: {
-
-        /**
-         * Event bus to communicate with ASQ.
-         */
-        eventBus: {
-          type: Object,
-          notify: true
-        },
-
         /**
          * whether the canvas will accept pointer events or not.
          */
         isInteractive: {
           type: Boolean,
           value: false,
-          observer: "_isInteractiveChanged",
+          observer: '_isInteractiveChanged',
           notify: true
+        },
+
+        /**
+         * Object that saves the drawing for its corresponding slide.
+         */
+        drawings: {
+          type: Object,
+          value: {},
+        },
+
+        /**
+         * Indicates if the canvas got the drawings from the DB.
+         */
+        gotDrawings: {
+          type: Boolean,
+          value: false,
+        },
+
+        /**
+         * Indicates if the slides have been loaded
+         */
+        slidesLoaded: {
+          type: Boolean,
+          value: false,
+        },
+
+        /**
+         * Indicates if the drawings have already been printed in the printing version
+         */
+        printed: {
+            type: Boolean,
+            value: false,
+        },
+      },
+
+      created: function() {
+        document.addEventListener('asq-ready', function(evt){
+          try {
+          this._subscribeToEvents(this.eventBus);
+          }
+          catch (err) {
+            console.debug('failed to _subscribeToEvents');
+          }
+        }.bind(this));
+      },
+
+      ready: function() {
+        if (!this.printing) {
+          // change the paper swatch picker icon
+          var paletteIcon = Polymer.dom(this.$.swatchPicker.root).querySelector('#iconButton');
+          paletteIcon.icon = 'image:palette';
         }
       },
 
-
-      attached: function(){
-        this.ctx = this.$.canvas.getContext('2d');
-        this.lastX = 0;
-        this.lastY = 0;
-        this.color = 0;
-        this.activeCanvas = false;
-
-        window.addEventListener('resize', this.resizeCanvas.bind(this), false);
-        this.resizeCanvas();
-        
-
-          document.addEventListener("keyup", function(event) {
-            if (event.keyCode === 67) {
-              if (this.activeCanvas) {
-                this.clearTo();
-                this.emitClearToEvent();
-                this.isInteractive = false;
-                this.emitMakeNonInteractiveEvent();
-                this.activeCanvas = !this.activeCanvas;
-              } else {
-                this.isInteractive = true;
-                this.emitMakeInteractiveEvent();
-                this.activeCanvas = !this.activeCanvas;
-              }
-            }
-
-          }.bind(this), false);
-
+      attached: function() {
+        if (document.readyState !== 'complete') {
+          window.addEventListener('load', function() {
+            this._presenterAttachedHandler();
+          }.bind(this));
+        }
+        else this._presenterAttachedHandler();
       },
 
-      resizeCanvas: function () {
-        this.$.canvas.width = this.offsetWidth;
-        this.$.canvas.height = this.offsetHeight;
+      _presenterAttachedHandler: function() {
+        this._setDrawingProperties({ activeCanvas : false, activeTool : 'pen' });
+
+        (this.printing)
+          ? this._emitGetSlidesEvent(true)
+          : this._emitGetSlidesEvent();
+
+        this._emitGetDrawingsEvent();
+        if (this.printing && !this.printed) {
+          this.printed = true;
+          if (!this.gotDrawings) {
+            this.$.canvas.addEventListener('gotDrawings', function() {
+              this._printHandler();
+            }.bind(this));
+          }
+          else this._printHandler();
+        }
+      },
+
+      _printHandler: function() {
+          var slides = (document.querySelector('.reveal'))? document.querySelector('.slides') : document.querySelector('#impress');
+          var slideArray = [];
+          var toRemove = [];
+
+          [].forEach.call(slides.children, function(slide) {
+            if (slide.id) {
+              var slide = document.getElementById(slide.id);
+              slideArray.push(slide);
+            }
+            else {
+              [].forEach.call(slide.children, function(slideChild) {
+                if (slideChild.id && slideChild.nodeName == 'SECTION') {
+                  var slide = document.getElementById(slideChild.id);
+                  slideArray.push(slide);
+                }
+              });
+              toRemove.push(slide);
+            }
+          });
+
+          toRemove.forEach(function(slide) {
+            slide.parentNode.removeChild(slide);
+          });
+
+          slideArray.forEach(function(slide) {
+            var slideDiv = document.createElement('DIV');
+            slideDiv.id = slide.id + 'Div';
+
+            var canvas = document.createElement('canvas');
+
+            slideDiv.appendChild(slide);
+            slideDiv.appendChild(canvas);
+
+            slides.appendChild(slideDiv);
+            slideDiv.className = 'slideDiv';
+            slideDiv.style.height = '792px';
+          });
+
+          Object.getOwnPropertyNames(this.drawings).forEach(function(slideId) {
+            if (slideId != '0') {
+              this._setSlideProperties(slideId);
+              var canvas = document.querySelector('#' + slideId + 'Div canvas')
+              canvas.width = document.querySelector('#' + slideId + 'Div').offsetWidth;
+              canvas.height = document.querySelector('#' + slideId + 'Div').offsetHeight;
+              var ctx = canvas.getContext('2d');
+              this._loadImage(this.drawings[slideId], ctx);
+            }
+          }.bind(this));
+
+          window.print();
+      },
+
+      _subscribeToEvents: function(eventBus) {
+        eventBus.on('asq:goto', this._onGoto.bind(this))
+        eventBus.on('asq:folo-connected', this._onConnected.bind(this));
+        eventBus.on('asq:ghost-connected', this._onConnected.bind(this));
+        eventBus.on('asq-plugin', this._onAsqPluginCustomData.bind(this));
       },
 
       _isInteractiveChanged: function(newVal, oldVal){
-        this.style.pointerEvents = newVal ? "auto" : "none";
+        this.style.pointerEvents = newVal ? 'auto' : 'none';
       },
 
-      // define a custom fillCircle method
-      fillCircle : function(x1, y1, x2, y2, lineThickness) {
-        //this.fillStyle = fillColor;
-
-        var steep = (Math.abs(y2 - y1) > Math.abs(x2 - x1));
-        if (steep) {
-          var x = x1;
-          x1 = y1;
-          y1 = x;
-
-          var y = y2;
-          y2 = x2;
-          x2 = y;
-        }
-        if (x1 > x2) {
-          var x = x1;
-          x1 = x2;
-          x2 = x;
-
-          var y = y1;
-          y1 = y2;
-          y2 = y;
-        }
-
-        var dx = x2 - x1, dy = Math.abs(y2 - y1), error = 0, de = dy / dx, yStep = -1, y = y1;
-
-        if (y1 < y2) {
-          yStep = 1;
-        }
-
-        for (var x = x1; x < x2; x++) {
-          if (steep) {
-            this.ctx.fillRect(y, x, lineThickness, lineThickness);
-          } else {
-            this.ctx.fillRect(x, y, lineThickness, lineThickness);
-          }
-
-          error += de;
-          if (error >= 0.5) {
-            y += yStep;
-            error -= 1.0;
-          }
+      _onAsqPluginCustomData: function(evt) {
+        if (evt.data.command == 'storeDrawingsLocally') {
+          this.drawings = (evt.data.pluginCustomData)? evt.data.pluginCustomData.drawings : {};
+          this.gotDrawings = true;
+          var event = new Event('gotDrawings');
+          this.$.canvas.dispatchEvent(event);
         }
       },
 
-      clearTo : function() {
-        this.ctx.clearRect(0, 0, this.$.canvas.width, this.$.canvas.height);
+      // draw the current drawing and retrieve the extra slides if the viewer connects later
+      _onConnected: function(evt) {
+        this._emitLoadImageEvent(this.drawings[this.lastStep], this.lastStep);
+        (this.printing)? this._emitGetSlidesEvent(true) : this._emitGetSlidesEvent();
+      },
+
+      _onGoto: function(evt) {
+        this.ctx = this.ctx || this.$.canvas.getContext('2d');
+        var id = evt.data.step || evt.data.id;
+        if (!this.printing) {
+          // wait for all elements to be loaded
+          if (document.readyState !== 'complete') {
+            window.addEventListener('load', function(){
+              this._goToHandler(id);
+            }.bind(this));
+          }
+          else this._goToHandler(id)
+        }
+      },
+
+      _goToHandler: function(id) {
+        // we are at the beginning or resume the presentation
+        if (!this.lastStep) {
+          if (document.querySelector('.reveal')) {
+            id = document.querySelector('.slides section:first-child').id;
+          }
+          this.lastStep = id;
+        }
+
+        if (document.querySelector('#' + this.lastStep)) {
+          this.drawings[this.lastStep] = this.drawings[this.lastStep] || [];
+        }
+
+        this.lastStep = id;
+
+        this._changeDrawingOnGoto(id);
+      },
+
+      getPageCoords: function(e){
+        // touch event
+        if(e.touches && e.touches[0]) {
+          return {
+            pageX : e.touches[0].pageX,
+            pageY : e.touches[0].pageY
+          }
+        }
+
+        // mousevent
+        return {
+          pageX : e.pageX,
+          pageY : e.pageY
+        }
+      },
+
+      _onMousedown: function(e) {
+        if (this.activeTool == 'pen') {
+          this.drawingColor = this.$.swatchPicker.color || this.drawingColor;
+        }
+
+        var standardWidth = 1366;
+        var standardHeight = 768;
+
+        var normalizedPageObj = this.getPageCoords(e);
+
+        this._setDrawingProperties({ lineWidth: this.$.lineWidthSlider.value,
+          updateLastXY : true,
+          pageX : normalizedPageObj.pageX,
+          pageY : normalizedPageObj.pageY,
+          isDrawing : true
+        });
+
+        this.drawings[this.lastStep] = this.drawings[this.lastStep] || [];
+
+        this._drawCircle(null, this.mouseX, this.mouseY, this.lineWidth  * (window.innerWidth * window.innerHeight) / (standardWidth * standardHeight));
+        this._emitFillEvent('circle')
+        this._pushLastDrawing('circle');
       },
 
       // bind mouse events
       _onMousemove: function(e) {
-        if (!this.isDrawing) {
-          return;
+        if(! this.isDrawing) return;
+        
+        // prevent scrolling for touch devices
+        // https://stackoverflow.com/questions/16348031/disable-scrolling-when-touch-moving-certain-element
+        if(e.touches){
+          e.preventDefault();
         }
-        mouseX = e.pageX - this.offsetLeft;
-        mouseY = e.pageY - this.offsetTop;
 
-        this.fillCircle(mouseX, mouseY, this.lastX, this.lastY, 6);
-        this.emitFillEvent(this.ctx.fillStyle, mouseX, mouseY, this.lastX, this.lastY, 6 )
+        var standardWidth = 1366;
+        var standardHeight = 768;
 
-        this.lastX = mouseX;
-        this.lastY = mouseY;
+        if (!this.isDrawing) return;
 
+        var normalizedPageObj = this.getPageCoords(e);
+
+        this._setDrawingProperties({ 
+          pageX : normalizedPageObj.pageX,
+          pageY : normalizedPageObj.pageY
+        });
+
+        this._drawLine(null, this.mouseX, this.mouseY, this.lastX, this.lastY, this.lineWidth  * (window.innerWidth * window.innerHeight) / (standardWidth * standardHeight));
+        this._emitFillEvent('line')
+
+        this._pushLastDrawing('line');
+
+        this._setDrawingProperties({ updateLastXY : true });
       },
 
-      _onMousedown: function(e) {
-        this.isDrawing = true;
-        this.lastX = e.pageX - this.offsetLeft;
-        this.lastY = e.pageY - this.offsetTop;
-
-        this.ctx.fillStyle = rainbow(50,this.color++);
-        if (this.color>50) { this.color = 0; }
-      },
-
-      _onMouseup :function(e) {
+      _onMouseup: function(e) {
         this.isDrawing = false;
+        this._emitSaveDrawingsEvent(this.drawings);
       },
 
-      _onMousewheel: function(e) {
-        var delta = e.detail ? e.detail * (-120) : e.wheelDelta;
-        this.ctx.fillStyle = "rgb(" + delta + ",0,0)";
+      _emitClearToEvent: function(){
+        if (!this.eventBus) return;
+        this.eventBus.emit('asq-plugin', {
+          type: 'asq-canvas',
+          data: {
+            command: 'clearTo'
+          }
+        });
       },
 
-      _onQuestionType: function(evt){
-        if(!evt || ! evt.questionType) return;
+      _emitFillEvent: function(form){
+        if (!this.eventBus) return;
 
-        if(evt.questionType == 'asq-text-input-q'){
-          if(evt.type == "progress"){
-            this._onProgress(evt);
+        this.eventBus.emit('asq-plugin', {
+          type: 'asq-canvas',
+          data: {
+            command: 'drawOnCanvas',
+            form: form,
+            mouseX: this.mouseX,
+            mouseY: this.mouseY,
+            lastX: this.lastX,
+            lastY: this.lastY,
+            drawingColor: this.drawingColor,
+            lineWidth: this.lineWidth,
+            slideWidth: this.slideWidth,
+            slideHeight: this.slideHeight,
+            sMX: this.sMX,
+            sMY: this.sMY,
+            gCO: this.ctx.globalCompositeOperation
           }
-          else if(evt.type == "restorePresenter"){
-            this._onRestorePresenter(evt);
+        });
+      },
+
+      _emitGetDrawingsEvent: function() {
+        if (!this.eventBus) return;
+        this.eventBus.emit('asq-plugin', {
+          type: 'asq-canvas',
+          data: {
+            command: 'getDrawings',
           }
+        });
+      },
+
+      _emitGetSlidesEvent: function(printing) {
+        if (!this.eventBus) return;
+        this.eventBus.emit('asq-plugin', {
+          type: 'asq-canvas',
+          data: {
+            command: 'getSlides',
+            printing: printing,
+          }
+        });
+      },
+
+      _emitLoadImageEvent: function(drawing, slideId) {
+        if (!this.eventBus) return;
+        this.eventBus.emit('asq-plugin', {
+          type: 'asq-canvas',
+          data: {
+            command: "loadImage",
+            drawing: drawing,
+            slideId: slideId,
+          }
+        });
+      },
+
+      _emitSaveDrawingsEvent: function(drawings) {
+        if (!this.eventBus) return;
+        this.eventBus.emit('asq-plugin', {
+          type: 'asq-canvas',
+          data: {
+            command: 'saveDrawings',
+            drawings: drawings
+          }
+        });
+      },
+
+      _addSlide: function(atEnd) {
+        var addedSlideIndex, slideId, prevX;
+        var prevSlide = document.querySelector('section.present');
+
+        if (!atEnd) { // insert after current slide
+
+          addedSlideIndex = this._indexOfSlide(prevSlide) + 1;
+        }
+        else { // insert at the end
+          if (document.querySelector('.reveal')) {
+            addedSlideIndex = document.querySelector('.reveal .slides').children.length;
+          }
+          else {
+            var slides = document.querySelector('#impress > div').children;
+            addedSlideIndex = slides.length;
+            prevSlide = slides[slides.length - 1];
+          }
+        }
+
+        if (document.querySelector('#impress')) prevX = prevSlide.dataset.x;
+
+        slideId = "s" + this._idGenerator();
+
+        if (!this.eventBus) return;
+        this.eventBus.emit('asq-plugin', {
+          type: 'asq-canvas',
+          data: {
+            command: 'addSlide',
+            content: '',
+            index: addedSlideIndex,
+            id: slideId,
+            prevX: prevX
+          }
+        });
+        this.lastStep = slideId;
+      },
+
+      _addSlideAfterCurrentSlide: function() {
+        this._addSlide(false);
+      },
+
+      _addSlideAtEnd: function() {
+        this._addSlide(true);
+      },
+
+      _changeDrawingOnGoto: function(id) {
+        this._clearCanvas();
+
+        if (document.querySelector('.reveal')) {
+          if (this.drawings[id]) {
+            this._setSlideProperties(id);
+            this._loadImage(this.drawings[id]);
+            this._emitLoadImageEvent(this.drawings[id], id);
+          }
+        }
+        else {
+          setTimeout(function() {
+            if (this.drawings[id]) {
+              this._setSlideProperties(id);
+              this._loadImage(this.drawings[id]);
+              this._emitLoadImageEvent(this.drawings[id], id);
+            }
+          }.bind(this), 1000);
         }
       },
 
-      emitClearToEvent: function(){
-        if (!this.eventBus) return;
-        this.eventBus.emit('asq-plugin', {
-          type: 'asq-canvas',
-          data: {
-            command: "clearTo"
-          }
+      _downloadCurrentCanvas: function() {
+        var link = document.createElement('a');
+        Polymer.dom(this.root).appendChild(link);
+        link.href = this.$.canvas.toDataURL();
+        link.download = 'canvas';
+        link.click();
+        Polymer.dom(this.root).removeChild(link);
+      },
+
+      _draw: function(evt) {
+        this.activeTool = 'pen';
+        evt.target.classList.add('active-tool');
+        if (this.$.eraser.classList.contains('active-tool')) this.$.eraser.classList.remove('active-tool');
+        this._setDrawingProperties({ drawingColor : this.$.swatchPicker.color, gCO : 'source-over'});
+      },
+
+      _erase: function(evt) {
+        this.activeTool = 'eraser';
+        evt.target.classList.add('active-tool');
+        if (this.$.pen.classList.contains('active-tool')) this.$.pen.classList.remove('active-tool');
+        this._setDrawingProperties({ drawingColor : 'rgba(0,0,0,1)', gCO : 'destination-out'});
+      },
+
+      _clearCanvas() {
+        this._clearTo();
+        this._emitClearToEvent();
+      },
+
+      _indexOfSlide: function(slide) {
+        var children = slide.parentNode.children;
+        var num = 0;
+        for (var i = 0; i < children.length; i++) {
+          if (children[i] == slide) return num;
+          if (children[i].nodeType == 1) num++;
+        }
+        return -1;
+      },
+
+      _deleteDrawings() {
+        this._clearCanvas();
+        this.drawings[this.lastStep] = [];
+        this._emitSaveDrawingsEvent(this.drawings);
+      },
+
+      _idGenerator: function() {
+        var S4 = function() {
+          return (((1 + Math.random()) * 0x10000)| 0).toString(16).substring(1);
+        };
+        return (S4() + S4() + '-' + S4()+ '-' + S4() + '-' + S4() + '-' + S4() + S4() + S4());
+      },
+
+      _openAddSlideDialog: function() {
+        this.$.addSlideDialog.open();
+      },
+
+      _openChangeLineWidthDialog: function() {
+        this.$.changeLineWidthDialog.open();
+      },
+
+      _pushLastDrawing: function(form) {
+        this.drawings[this.lastStep].push({
+          form: form,
+          mouseX: this.mouseX,
+          mouseY: this.mouseY,
+          lastX: this.lastX,
+          lastY: this.lastY,
+          drawingColor: this.drawingColor,
+          lineWidth: this.lineWidth,
+          slideWidth: this.slideWidth,
+          slideHeight: this.slideHeight,
+          sMX: this.sMX,
+          sMY: this.sMY,
+          gCO: this.ctx.globalCompositeOperation
         });
       },
 
-      emitMakeNonInteractiveEvent: function(){
-        if (!this.eventBus) return;
-        this.eventBus.emit('asq-plugin', {
-          type: 'asq-canvas',
-          data: {
-            command: "makeNonInteractive"
-          }
-        });
+      _removeSlide: function() {
+        delete this.drawings[this.currentSlide.id];
+        if (this.currentSlide.innerHTML == '') {
+          if (!this.eventBus) return;
+          this.eventBus.emit('asq-plugin', {
+            type: 'asq-canvas',
+            data: {
+              command: 'removeSlide',
+              id: this.currentSlide.id,
+              drawings: this.drawings
+            }
+          });
+        }
       },
 
-      emitMakeInteractiveEvent: function(){
-        if (!this.eventBus) return;
-        this.eventBus.emit('asq-plugin', {
-          type: 'asq-canvas',
-          data: {
-            command: "makeInteractive"
-          }
-        });
+      _menuToggle: function(evt) {
+        if (this.$.burger.icon != 'clear') {
+          this.$.burger.classList.remove('logo-shown');
+          this.$.mainMenuBtns.classList.remove('BtnHide');
+          this.$.mainMenuBtns.classList.add('showMenuBtns');
+          this.$.burger.style.transform = 'rotate(360deg)';
+          setTimeout(function() {
+            this.icon = 'clear';
+          }.bind(this.$.burger), 1);
+        }
+        else {
+          this.isInteractive = false;
+          this.activeCanvas = false;
+
+          this.$.burger.classList.add('logo-shown');
+          this.$.slideUtilsBtns.classList.remove('showSubMenuBtns');
+          this.$.drawingBtns.classList.remove('showSubMenuBtns');
+          if (this.$.drawingTools.classList.contains('active-tool3')) this.$.drawingTools.classList.remove('active-tool3');
+          if (this.$.utils.classList.contains('active-tool2')) this.$.utils.classList.remove('active-tool2');
+
+          this.$.mainMenuBtns.classList.add('BtnHide');
+          this.$.mainMenuBtns.classList.remove('showMenuBtns');
+          this.$.burger.style.transform = 'rotate(0deg)';
+          setTimeout(function() {
+            this.icon = 'menu';
+           }.bind(this.$.burger), 1);
+        }
       },
 
-      emitFillEvent: function(fillStyle, mouseX, mouseY, lastX, lastY, lineThickness){
-        if (!this.eventBus) return;
-        this.eventBus.emit('asq-plugin', {
-          type: 'asq-canvas',
-          data: {
-            command: "fillCircle",
-            fillStyle: fillStyle,
-            mouseX: mouseX,
-            mouseY: mouseY,
-            lastX: lastX,
-            lastY: lastY,
-            lineThickness : lineThickness
-          }
-        })
-      }
-    
+      _printSlides: function() {
+        // only add print-pdf if it doesn't exist already
+        var isPrinting = ( /print-pdf/gi ).test( window.location.search );
+        if(! isPrinting){
+          prefix = window.location.search === ''
+            ? ''
+            : '&'
+           window.location.search = window.location.search + prefix + 'print-pdf';
+        }
+      },
+
+      _openSubMenu: function(evt) {
+        this.$.slideUtilsBtns.classList.remove('showSubMenuBtns');
+        this.$.drawingBtns.classList.remove('showSubMenuBtns');
+
+        if (evt.target.id == 'utils') {
+          this.$.slideUtilsBtns.classList.add('showSubMenuBtns');
+          this.$.utils.classList.add('active-tool2');
+          if (this.$.drawingTools.classList.contains('active-tool3')) this.$.drawingTools.classList.remove('active-tool3');
+
+          this.isInteractive = false;
+          this.activeCanvas = false;
+        }
+        else {
+          this.$.drawingBtns.classList.add('showSubMenuBtns');
+          this.$.drawingTools.classList.add('active-tool3');
+          if (this.$.utils.classList.contains('active-tool2')) this.$.utils.classList.remove('active-tool2');
+          this.isInteractive = true;
+          this.activeCanvas = true;
+          this.$.pen.click();
+        }
+      },
+
+      _cockpitUrl: function() {
+        return window.location.pathname + 'cockpit';
+      },
+
     });
   })();
 </script>
